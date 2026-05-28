@@ -19,7 +19,7 @@ export default function SignupPage() {
   // Check for invite token
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const invite = params?.get('invite')
-  const validInvite = invite === process.env.NEXT_PUBLIC_INVITE_TOKEN
+  const validInvite = invite === 'theloungeaccessest26'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
