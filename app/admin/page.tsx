@@ -114,15 +114,17 @@ export default function AdminPage() {
     setLoginLoading(false)
   }
 
-  async function fetchMembers() {
-    setLoading(true)
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-    if (data) {
-      setPending(data.filter((m: Member) => !m.is_approved))
-      setApproved(data.filter((m: Member) => m.is_approved))
-    }
-    setLoading(false)
+ async function fetchMembers() {
+  setLoading(true)
+  const res = await fetch('/api/admin-profiles')
+  const { data } = await res.json()
+  if (data) {
+    setPending(data.filter((m: Member) => !m.is_approved))
+    setApproved(data.filter((m: Member) => m.is_approved))
   }
+  setLoading(false)
+}
+
 
   async function fetchEvents() {
     const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false })
