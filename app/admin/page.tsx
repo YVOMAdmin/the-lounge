@@ -18,6 +18,17 @@ type Member = {
   is_approved: boolean
 }
 
+type Event = {
+  id: string
+  title: string
+  date: string
+  time: string
+  description: string
+  link: string
+  is_approved: boolean
+  created_at: string
+}
+
 const s = {
   page: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', padding: '0' },
   loginPage: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -61,11 +72,12 @@ export default function AdminPage() {
   const [approved, setApproved] = useState<Member[]>([])
   const [loading, setLoading] = useState(false)
   const [processing, setProcessing] = useState<string | null>(null)
+  const [pendingEvents, setPendingEvents] = useState<Event[]>([])
+  const [approvedEvents, setApprovedEvents] = useState<Event[]>([])
 
   useEffect(() => {
-    // Check if already authed via cookie
     fetch('/api/admin-auth', { method: 'GET' })
-      .then(r => { if (r.ok) { setAuthed(true); fetchMembers() } })
+      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents() } })
       .catch(() => {})
   }, [])
 
@@ -81,6 +93,7 @@ export default function AdminPage() {
       if (res.ok) {
         setAuthed(true)
         fetchMembers()
+        fetchEvents()
       } else {
         setLoginError('Incorrect password.')
       }
@@ -96,7 +109,6 @@ export default function AdminPage() {
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false })
-
     if (data) {
       setPending(data.filter((m: Member) => !m.is_approved))
       setApproved(data.filter((m: Member) => m.is_approved))
@@ -104,20 +116,39 @@ export default function AdminPage() {
     setLoading(false)
   }
 
+  async function fetchEvents() {
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (data) {
+      setPendingEvents(data.filter((e: Event) => !e.is_approved))
+      setApprovedEvents(data.filter((e: Event) => e.is_approved))
+    }
+  }
+
+  async function approveEvent(id: string) {
+    setProcessing(id)
+    await supabase.from('events').update({ is_approved: true }).eq('id', id)
+    await fetchEvents()
+    setProcessing(null)
+  }
+
+  async function rejectEvent(id: string) {
+    setProcessing(id)
+    await supabase.from('events').delete().eq('id', id)
+    await fetchEvents()
+    setProcessing(null)
+  }
+
   async function approveMember(id: string) {
     setProcessing(id)
-
     const { data: member } = await supabase
       .from('profiles')
       .select('username, email')
       .eq('id', id)
       .single()
-
-    await supabase
-      .from('profiles')
-      .update({ is_approved: true })
-      .eq('id', id)
-
+    await supabase.from('profiles').update({ is_approved: true }).eq('id', id)
     if (member?.email) {
       await fetch('/api/welcome-member', {
         method: 'POST',
@@ -125,7 +156,6 @@ export default function AdminPage() {
         body: JSON.stringify({ username: member.username, email: member.email }),
       })
     }
-
     await fetchMembers()
     setProcessing(null)
   }
@@ -137,7 +167,6 @@ export default function AdminPage() {
     setProcessing(null)
   }
 
-  // Login screen
   if (!authed) {
     return (
       <main style={s.loginPage}>
@@ -164,7 +193,6 @@ export default function AdminPage() {
     )
   }
 
-  // Admin dashboard
   return (
     <main style={s.page}>
       <div style={s.ticker}>
@@ -180,23 +208,73 @@ export default function AdminPage() {
 
       <div style={s.main}>
 
+        {/* Member Stats */}
         <div style={s.stats}>
           <div style={s.statCard}>
             <p style={s.statNum}>{pending.length}</p>
-            <p style={s.statLabel}>Pending</p>
+            <p style={s.statLabel}>Pending Members</p>
           </div>
           <div style={s.statCard}>
             <p style={s.statNum}>{approved.length}</p>
-            <p style={s.statLabel}>Approved</p>
+            <p style={s.statLabel}>Approved Members</p>
           </div>
           <div style={s.statCard}>
-            <p style={s.statNum}>{pending.length + approved.length}</p>
-            <p style={s.statLabel}>Total</p>
+            <p style={s.statNum}>{pendingEvents.length}</p>
+            <p style={s.statLabel}>Pending Events</p>
           </div>
         </div>
 
-        <p style={s.sectionTitle}>Pending Approval</p>
+        {/* Pending Events */}
+        <p style={s.sectionTitle}>Events Pending Approval</p>
+        {pendingEvents.length === 0 ? (
+          <div style={s.empty}>
+            <p style={s.emptyText}>No pending events ☕</p>
+          </div>
+        ) : (
+          pendingEvents.map(event => (
+            <div key={event.id} style={s.card}>
+              <div style={s.cardAccent} />
+              <div style={s.cardBody}>
+                <div style={s.memberInfo}>
+                  <p style={s.memberName}>{event.title}</p>
+                  <p style={s.memberMeta}>{event.date} at {event.time}</p>
+                  {event.description && <p style={{ ...s.memberMeta, marginTop: '4px' }}>{event.description}</p>}
+                  {event.link && <p style={{ ...s.memberMeta, marginTop: '4px' }}><a href={event.link} target="_blank" rel="noreferrer">{event.link}</a></p>}
+                </div>
+                <div style={s.actions}>
+                  <button style={s.rejectBtn} onClick={() => rejectEvent(event.id)} disabled={processing === event.id}>Reject</button>
+                  <button style={s.approveBtn} onClick={() => approveEvent(event.id)} disabled={processing === event.id}>
+                    {processing === event.id ? '...' : 'Approve →'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
 
+        {/* Approved Events */}
+        {approvedEvents.length > 0 && (
+          <>
+            <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Approved Events</p>
+            {approvedEvents.map(event => (
+              <div key={event.id} style={s.card}>
+                <div style={{ ...s.cardAccent, backgroundColor: '#4caf7d' }} />
+                <div style={s.cardBody}>
+                  <div style={s.memberInfo}>
+                    <p style={s.memberName}>{event.title}</p>
+                    <p style={s.memberMeta}>{event.date} at {event.time}</p>
+                  </div>
+                  <div style={s.actions}>
+                    <button style={s.rejectBtn} onClick={() => rejectEvent(event.id)} disabled={processing === event.id}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Pending Members */}
+        <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Members Pending Approval</p>
         {loading ? (
           <div style={s.empty}><p style={s.emptyText}>Loading...</p></div>
         ) : pending.length === 0 ? (
@@ -224,6 +302,7 @@ export default function AdminPage() {
           ))
         )}
 
+        {/* Approved Members */}
         {approved.length > 0 && (
           <>
             <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Approved Members</p>
