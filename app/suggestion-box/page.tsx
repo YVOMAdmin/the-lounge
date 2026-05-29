@@ -35,6 +35,8 @@ export default function SuggestionBoxPage() {
   async function handleSubmit() {
     if (!message.trim()) return
     setLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+if (!session) { window.location.href = '/auth/login'; return; }
     await supabase.from('suggestions').insert({ type, message })
     await fetch('/api/suggestion-notification', {
       method: 'POST',

@@ -216,7 +216,10 @@ export default function Lounge() {
   };
   const submitEvent = async () => {
   if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) { window.location.href = '/auth/login'; return; }
   await supabase.from('events').insert({
+
     title: eventDraft.title,
     date: eventDraft.date,
     time: eventDraft.time,
