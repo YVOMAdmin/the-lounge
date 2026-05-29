@@ -204,13 +204,35 @@ export default function AdminPage() {
   }
 
   async function approveMember(id: string) {
-    setProcessing(id)
-    await supabase
-      .from('profiles')
-      .update({ is_approved: true })
-      .eq('id', id)
-    await fetchMembers()
-    setProcessing(null)
+  setProcessing(id)
+  
+  // Get the member details first
+  const { data: member } = await supabase
+    .from('profiles')
+    .select('username, email')
+    .eq('id', id)
+    .single()
+
+  // Approve in database
+  await supabase
+    .from('profiles')
+    .update({ is_approved: true })
+    .eq('id', id)
+
+  // Send welcome email
+  if (member?.email) {
+    await fetch('/api/welcome-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: member.username,
+        email: member.email,
+      })
+    })
+  }
+
+  await fetchMembers()
+  setProcessing(null)
   }
 
   async function rejectMember(id: string) {
