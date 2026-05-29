@@ -74,6 +74,7 @@ const s = {
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [password, setPassword] = useState('')
+  const [totp, setTotp] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [pending, setPending] = useState<Member[]>([])
@@ -98,7 +99,7 @@ export default function AdminPage() {
       const res = await fetch('/api/admin-auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+body: JSON.stringify({ password, totp }),
       })
       if (res.ok) {
         setAuthed(true)
@@ -202,6 +203,7 @@ export default function AdminPage() {
             <p style={{ margin: '0 0 28px', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999' }}>Admin Access</p>
             {loginError && <p style={s.error}>{loginError}</p>}
             <input type="password" placeholder="Enter password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleLogin() }} style={s.input} />
+            <input type="text" placeholder="Enter TOTP code" value={totp} onChange={e => setTotp(e.target.value)} style={s.input} />
             <button onClick={handleLogin} style={s.submitBtn} disabled={loginLoading}>{loginLoading ? 'Checking...' : 'Enter →'}</button>
           </div>
         </div>
