@@ -248,7 +248,7 @@ useEffect(() => {
         .single()
       if (profile && !profile.is_approved) {
         await supabase.auth.signOut()
-        window.location.href = '/pending-approval'
+window.location.href = '/auth/pending'
       }
     }
   }
