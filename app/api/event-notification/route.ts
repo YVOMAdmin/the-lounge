@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   const { title, date, time, description, link } = await request.json();
 
-  await fetch('https://api.resend.com/emails', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
@@ -23,5 +23,8 @@ export async function POST(request: Request) {
     })
   });
 
-  return NextResponse.json({ ok: true });
+  const data = await res.json();
+  console.log('Resend response:', JSON.stringify(data));
+
+  return NextResponse.json({ ok: true, resend: data });
 }
