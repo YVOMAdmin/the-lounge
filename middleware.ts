@@ -1,27 +1,33 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+  const token = req.cookies.getAll()
+    .find(c => c.name.includes('auth-token'))?.value
 
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (session) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_approved')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!profile?.is_approved) {
-      await supabase.auth.signOut()
-      return NextResponse.redirect(new URL('/pending-approval', req.url))
-    }
+  if (!token) {
+    return NextResponse.next()
   }
 
-  return res
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?select=is_approved`,
+      {
+        headers: {
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    )
+    const data = await res.json()
+    if (data?.[0]?.is_approved === false) {
+      return NextResponse.redirect(new URL('/pending-approval', req.url))
+    }
+  } catch {
+    return NextResponse.next()
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
