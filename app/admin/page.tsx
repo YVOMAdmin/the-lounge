@@ -19,175 +19,76 @@ type Member = {
 }
 
 const s = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#edeae4',
-    fontFamily: 'Georgia, serif',
-    padding: '0',
-  },
-  ticker: {
-    backgroundColor: '#1a1a1a',
-    padding: '10px 24px',
-    overflow: 'hidden',
-  },
-  tickerText: {
-    margin: 0,
-    fontSize: '11px',
-    letterSpacing: '2px',
-    color: '#ffffff',
-    whiteSpace: 'nowrap' as const,
-  },
-  header: {
-    padding: '28px 40px 20px',
-    borderBottom: '1px solid #ddd9d2',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  logo: {
-    margin: 0,
-    fontSize: '28px',
-    fontWeight: 700,
-    color: '#1a1a1a',
-    fontFamily: 'Georgia, serif',
-  },
-  badge: {
-    display: 'inline-block',
-    padding: '5px 14px',
-    backgroundColor: '#1a1a1a',
-    borderRadius: '20px',
-    fontSize: '11px',
-    color: '#ffffff',
-    letterSpacing: '1px',
-  },
-  main: {
-    padding: '32px 40px',
-    maxWidth: '800px',
-    margin: '0 auto',
-  },
-  sectionTitle: {
-    margin: '0 0 20px',
-    fontSize: '11px',
-    letterSpacing: '3px',
-    textTransform: 'uppercase' as const,
-    color: '#999',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    overflow: 'hidden',
-    marginBottom: '12px',
-  },
-  cardAccent: {
-    height: '4px',
-    backgroundColor: '#e8602c',
-  },
-  cardBody: {
-    padding: '20px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '16px',
-  },
-  avatar: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '12px',
-    backgroundColor: '#edeae4',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '22px',
-    flexShrink: 0,
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    margin: '0 0 2px',
-    fontSize: '16px',
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  memberMeta: {
-    margin: 0,
-    fontSize: '12px',
-    color: '#999',
-  },
-  actions: {
-    display: 'flex',
-    gap: '8px',
-  },
-  approveBtn: {
-    padding: '10px 20px',
-    backgroundColor: '#1a1a1a',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '24px',
-    fontSize: '12px',
-    fontFamily: 'Georgia, serif',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    letterSpacing: '0.5px',
-  },
-  rejectBtn: {
-    padding: '10px 20px',
-    backgroundColor: 'transparent',
-    color: '#999',
-    border: '1.5px solid #ddd',
-    borderRadius: '24px',
-    fontSize: '12px',
-    fontFamily: 'Georgia, serif',
-    cursor: 'pointer',
-    letterSpacing: '0.5px',
-  },
-  empty: {
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    padding: '48px 24px',
-    textAlign: 'center' as const,
-  },
-  emptyText: {
-    margin: 0,
-    fontSize: '16px',
-    fontStyle: 'italic',
-    color: '#999',
-  },
-  stats: {
-    display: 'flex',
-    gap: '12px',
-    marginBottom: '28px',
-  },
-  statCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    padding: '16px 20px',
-    flex: 1,
-  },
-  statNum: {
-    margin: '0 0 4px',
-    fontSize: '28px',
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  statLabel: {
-    margin: 0,
-    fontSize: '11px',
-    letterSpacing: '2px',
-    textTransform: 'uppercase' as const,
-    color: '#999',
-  },
+  page: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', padding: '0' },
+  loginPage: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loginCard: { backgroundColor: '#ffffff', borderRadius: '16px', overflow: 'hidden', width: '360px' },
+  loginAccent: { height: '4px', backgroundColor: '#e8602c' },
+  loginBody: { padding: '36px' },
+  ticker: { backgroundColor: '#1a1a1a', padding: '10px 24px', overflow: 'hidden' },
+  tickerText: { margin: 0, fontSize: '11px', letterSpacing: '2px', color: '#ffffff', whiteSpace: 'nowrap' as const },
+  header: { padding: '28px 40px 20px', borderBottom: '1px solid #ddd9d2', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  logo: { margin: 0, fontSize: '28px', fontWeight: 700, color: '#1a1a1a', fontFamily: 'Georgia, serif' },
+  badge: { display: 'inline-block', padding: '5px 14px', backgroundColor: '#1a1a1a', borderRadius: '20px', fontSize: '11px', color: '#ffffff', letterSpacing: '1px' },
+  main: { padding: '32px 40px', maxWidth: '800px', margin: '0 auto' },
+  sectionTitle: { margin: '0 0 20px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase' as const, color: '#999' },
+  card: { backgroundColor: '#ffffff', borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' },
+  cardAccent: { height: '4px', backgroundColor: '#e8602c' },
+  cardBody: { padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' },
+  avatar: { width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#edeae4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 },
+  memberInfo: { flex: 1 },
+  memberName: { margin: '0 0 2px', fontSize: '16px', fontWeight: 700, color: '#1a1a1a' },
+  memberMeta: { margin: 0, fontSize: '12px', color: '#999' },
+  actions: { display: 'flex', gap: '8px' },
+  approveBtn: { padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '24px', fontSize: '12px', fontFamily: 'Georgia, serif', cursor: 'pointer', fontWeight: 'bold', letterSpacing: '0.5px' },
+  rejectBtn: { padding: '10px 20px', backgroundColor: 'transparent', color: '#999', border: '1.5px solid #ddd', borderRadius: '24px', fontSize: '12px', fontFamily: 'Georgia, serif', cursor: 'pointer', letterSpacing: '0.5px' },
+  empty: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '48px 24px', textAlign: 'center' as const },
+  emptyText: { margin: 0, fontSize: '16px', fontStyle: 'italic', color: '#999' },
+  stats: { display: 'flex', gap: '12px', marginBottom: '28px' },
+  statCard: { backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px 20px', flex: 1 },
+  statNum: { margin: '0 0 4px', fontSize: '28px', fontWeight: 700, color: '#1a1a1a' },
+  statLabel: { margin: 0, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: '#999' },
+  input: { width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1.5px solid #ddd', fontFamily: 'Georgia, serif', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box' as const, outline: 'none' },
+  submitBtn: { width: '100%', padding: '13px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '24px', fontFamily: 'Georgia, serif', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold', letterSpacing: '0.5px' },
+  error: { margin: '0 0 12px', fontSize: '13px', color: '#e8602c', fontFamily: 'Georgia, serif' },
 }
 
 export default function AdminPage() {
+  const [authed, setAuthed] = useState(false)
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
   const [pending, setPending] = useState<Member[]>([])
   const [approved, setApproved] = useState<Member[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [processing, setProcessing] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchMembers()
+    // Check if already authed via cookie
+    fetch('/api/admin-auth', { method: 'GET' })
+      .then(r => { if (r.ok) { setAuthed(true); fetchMembers() } })
+      .catch(() => {})
   }, [])
+
+  async function handleLogin() {
+    setLoginLoading(true)
+    setLoginError('')
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) {
+        setAuthed(true)
+        fetchMembers()
+      } else {
+        setLoginError('Incorrect password.')
+      }
+    } catch {
+      setLoginError('Something went wrong. Try again.')
+    }
+    setLoginLoading(false)
+  }
 
   async function fetchMembers() {
     setLoading(true)
@@ -204,47 +105,66 @@ export default function AdminPage() {
   }
 
   async function approveMember(id: string) {
-  setProcessing(id)
-  
-  // Get the member details first
-  const { data: member } = await supabase
-    .from('profiles')
-    .select('username, email')
-    .eq('id', id)
-    .single()
-
-  // Approve in database
-  await supabase
-    .from('profiles')
-    .update({ is_approved: true })
-    .eq('id', id)
-
-  // Send welcome email
-  if (member?.email) {
-    await fetch('/api/welcome-member', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: member.username,
-        email: member.email,
-      })
-    })
-  }
-
-  await fetchMembers()
-  setProcessing(null)
-  }
-
-  async function rejectMember(id: string) {
     setProcessing(id)
+
+    const { data: member } = await supabase
+      .from('profiles')
+      .select('username, email')
+      .eq('id', id)
+      .single()
+
     await supabase
       .from('profiles')
-      .delete()
+      .update({ is_approved: true })
       .eq('id', id)
+
+    if (member?.email) {
+      await fetch('/api/welcome-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: member.username, email: member.email }),
+      })
+    }
+
     await fetchMembers()
     setProcessing(null)
   }
 
+  async function rejectMember(id: string) {
+    setProcessing(id)
+    await supabase.from('profiles').delete().eq('id', id)
+    await fetchMembers()
+    setProcessing(null)
+  }
+
+  // Login screen
+  if (!authed) {
+    return (
+      <main style={s.loginPage}>
+        <div style={s.loginCard}>
+          <div style={s.loginAccent} />
+          <div style={s.loginBody}>
+            <h1 style={{ ...s.logo, marginBottom: '6px' }}>The Lounge</h1>
+            <p style={{ margin: '0 0 28px', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999' }}>Admin Access</p>
+            {loginError && <p style={s.error}>{loginError}</p>}
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
+              style={s.input}
+            />
+            <button onClick={handleLogin} style={s.submitBtn} disabled={loginLoading}>
+              {loginLoading ? 'Checking...' : 'Enter →'}
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Admin dashboard
   return (
     <main style={s.page}>
       <div style={s.ticker}>
@@ -260,7 +180,6 @@ export default function AdminPage() {
 
       <div style={s.main}>
 
-        {/* Stats */}
         <div style={s.stats}>
           <div style={s.statCard}>
             <p style={s.statNum}>{pending.length}</p>
@@ -276,7 +195,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Pending */}
         <p style={s.sectionTitle}>Pending Approval</p>
 
         {loading ? (
@@ -293,21 +211,11 @@ export default function AdminPage() {
                 <div style={s.avatar}>{member.avatar_emoji || '☕'}</div>
                 <div style={s.memberInfo}>
                   <p style={s.memberName}>{member.username}</p>
-                  <p style={s.memberMeta}>{member.location} · {new Date(member.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p style={s.memberMeta}>{member.location || 'Unknown'} · {new Date(member.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                 </div>
                 <div style={s.actions}>
-                  <button
-                    style={s.rejectBtn}
-                    onClick={() => rejectMember(member.id)}
-                    disabled={processing === member.id}
-                  >
-                    Reject
-                  </button>
-                  <button
-                    style={s.approveBtn}
-                    onClick={() => approveMember(member.id)}
-                    disabled={processing === member.id}
-                  >
+                  <button style={s.rejectBtn} onClick={() => rejectMember(member.id)} disabled={processing === member.id}>Reject</button>
+                  <button style={s.approveBtn} onClick={() => approveMember(member.id)} disabled={processing === member.id}>
                     {processing === member.id ? '...' : 'Approve →'}
                   </button>
                 </div>
@@ -316,7 +224,6 @@ export default function AdminPage() {
           ))
         )}
 
-        {/* Approved */}
         {approved.length > 0 && (
           <>
             <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Approved Members</p>
@@ -327,17 +234,11 @@ export default function AdminPage() {
                   <div style={s.avatar}>{member.avatar_emoji || '☕'}</div>
                   <div style={s.memberInfo}>
                     <p style={s.memberName}>{member.username}</p>
-                    <p style={s.memberMeta}>{member.location} · Approved</p>
+                    <p style={s.memberMeta}>{member.location || 'Unknown'} · Approved</p>
                   </div>
                   <div style={s.actions}>
-  <button
-    style={s.rejectBtn}
-    onClick={() => rejectMember(member.id)}
-    disabled={processing === member.id}
-  >
-    {processing === member.id ? '...' : 'Remove'}
-  </button>
-</div>
+                    <button style={s.rejectBtn} onClick={() => rejectMember(member.id)} disabled={processing === member.id}>Remove</button>
+                  </div>
                 </div>
               </div>
             ))}
