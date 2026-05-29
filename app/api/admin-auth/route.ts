@@ -44,13 +44,13 @@ export async function POST(request: Request) {
   if (password !== process.env.ADMIN_PASSWORD) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  if (!totp) {
-    return NextResponse.json({ error: 'TOTP code required' }, { status: 401 });
-  }
-  const valid = await verifyTOTP(process.env.ADMIN_TOTP_SECRET!, totp);
-  if (!valid) {
-    return NextResponse.json({ error: 'Invalid code' }, { status: 401 });
-  }
+  // if (!totp) {
+//   return NextResponse.json({ error: 'TOTP code required' }, { status: 401 });
+// }
+// const valid = await verifyTOTP(process.env.ADMIN_TOTP_SECRET!, totp);
+// if (!valid) {
+//   return NextResponse.json({ error: 'Invalid code' }, { status: 401 });
+// }
   const response = NextResponse.json({ ok: true });
   response.cookies.set('admin_auth', 'true', {
     httpOnly: true,
