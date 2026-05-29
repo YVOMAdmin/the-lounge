@@ -307,7 +307,15 @@ export default function AdminPage() {
                     <p style={s.memberName}>{member.username}</p>
                     <p style={s.memberMeta}>{member.location} · Approved</p>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#4caf7d', letterSpacing: '1px' }}>✓ MEMBER</span>
+                  <div style={s.actions}>
+  <button
+    style={s.rejectBtn}
+    onClick={() => rejectMember(member.id)}
+    disabled={processing === member.id}
+  >
+    {processing === member.id ? '...' : 'Remove'}
+  </button>
+</div>
                 </div>
               </div>
             ))}
