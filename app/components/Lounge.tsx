@@ -127,6 +127,10 @@ const MARQUEE = "For the ones who keep it all running · For the ones who keep i
 const catOf  = (id: string) => CATEGORIES.find(c=>c.id===id) || CATEGORIES[0];
 const typeOf = (id: string) => EVENT_TYPES.find(t=>t.id===id) || EVENT_TYPES[0];
 const fmt    = (d: Date)    => d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+const fmtEnd = (d: Date, duration: number) => {
+  const end = new Date(d.getTime() + duration * 60000);
+  return d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + ' - ' + end.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+};
 const fmtDate= (d: Date)    => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 
 export default function Lounge() {
@@ -332,7 +336,7 @@ useEffect(() => {
           <span className="event-type-badge" style={{background:`${t.color}15`,color:t.color,border:`1px solid ${t.color}2A`}}>{t.emoji} {t.label}</span>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             {event.dropIn&&<span className="dropin-pill">🚪 Drop-in</span>}
-            <span className="event-date">{fmtDate(d)} · {fmt(d)} {event.timezone}</span>
+        <span className="event-date">{fmtDate(d)} · {fmtEnd(d, event.duration)} {event.timezone}</span>
           </div>
         </div>
         <div className="event-title">{event.title}</div>
