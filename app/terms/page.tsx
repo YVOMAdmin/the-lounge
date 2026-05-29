@@ -115,7 +115,7 @@ export default function TermsPage() {
           <p style={{...styles.mt, fontWeight: 600, color: "#1A1814"}}>By submitting an event, you confirm that:</p>
           <ul style={styles.ul}>
             <li>The event details are accurate</li>
-            <li>You have the right to host the event and share the meeting link provided</li>
+            <li>You have the right to host the event and share the Meeting Link / Event Links / Website provided</li>
             <li>The event is appropriate for the community and complies with these Terms</li>
           </ul>
         </Section>

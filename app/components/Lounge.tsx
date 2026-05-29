@@ -819,7 +819,7 @@ export default function Lounge() {
               </label>
               <div className="section-label">Description</div>
               <textarea style={{minHeight:80}} placeholder="What's this event about? Who should come?" value={eventDraft.description} onChange={(e:any)=>setEventDraft((d:any)=>({...d,description:e.target.value}))}/>
-              <div className="section-label">Meeting link</div>
+              <div className="section-label">Meeting Link / Event Links / Website</div>
               <input className="input-field" placeholder="Zoom, Google Meet, Teams..." value={eventDraft.link} onChange={(e:any)=>setEventDraft((d:any)=>({...d,link:e.target.value}))}/>
               <div className="approval-note">⏳ Your event will be reviewed by an admin before going live. We aim to approve within 24 hours.</div>
               <div className="modal-foot">
