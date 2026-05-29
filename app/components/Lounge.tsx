@@ -711,7 +711,7 @@ export default function Lounge() {
           <aside className="rail">
             <div className="welcome">
               <div className="welcome-head">Hey {myAvatar} {myName}</div>
-              <div className="welcome-body">A <span className="welcome-hl">safe, closed space</span> to share, vent, and support each other. No managers, no judgment.</div>
+              <div className="welcome-body">A <span className="welcome-hl">safe, closed space</span> to share, vent, and support each other. Your people. Your space. No judgement..</div>
             </div>
             <div className="rail-card">
               <div className="rail-title">Right now</div>

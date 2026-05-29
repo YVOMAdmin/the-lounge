@@ -78,7 +78,7 @@ export default function SignupPage() {
             Your account is being reviewed. We'll email you at <strong>{form.email}</strong> once you're approved — usually within 24 hours.
           </p>
           <div style={{background:'#FFFBF5',border:'1px solid #E8E3DC',borderRadius:10,padding:'14px 16px',marginTop:20,fontSize:12,color:'#6B6358',lineHeight:1.6}}>
-            💙 While you wait — we're a community for remote admin professionals to share, vent, and support each other. No managers, no judgment.
+            💙 While you wait — we're a community for remote admin professionals to share, vent, and support each other. Your people. Your space. No judgement..
           </div>
         </div>
       </main>
