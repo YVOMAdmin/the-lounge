@@ -29,6 +29,14 @@ type Event = {
   created_at: string
 }
 
+type Suggestion = {
+  id: string
+  type: string
+  message: string
+  is_approved: boolean
+  created_at: string
+}
+
 const s = {
   page: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', padding: '0' },
   loginPage: { minHeight: '100vh', backgroundColor: '#edeae4', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -54,7 +62,7 @@ const s = {
   rejectBtn: { padding: '10px 20px', backgroundColor: 'transparent', color: '#999', border: '1.5px solid #ddd', borderRadius: '24px', fontSize: '12px', fontFamily: 'Georgia, serif', cursor: 'pointer', letterSpacing: '0.5px' },
   empty: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '48px 24px', textAlign: 'center' as const },
   emptyText: { margin: 0, fontSize: '16px', fontStyle: 'italic', color: '#999' },
-  stats: { display: 'flex', gap: '12px', marginBottom: '28px' },
+  stats: { display: 'flex', gap: '12px', marginBottom: '28px', flexWrap: 'wrap' as const },
   statCard: { backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px 20px', flex: 1 },
   statNum: { margin: '0 0 4px', fontSize: '28px', fontWeight: 700, color: '#1a1a1a' },
   statLabel: { margin: 0, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' as const, color: '#999' },
@@ -74,10 +82,12 @@ export default function AdminPage() {
   const [processing, setProcessing] = useState<string | null>(null)
   const [pendingEvents, setPendingEvents] = useState<Event[]>([])
   const [approvedEvents, setApprovedEvents] = useState<Event[]>([])
+  const [pendingSuggestions, setPendingSuggestions] = useState<Suggestion[]>([])
+  const [approvedSuggestions, setApprovedSuggestions] = useState<Suggestion[]>([])
 
   useEffect(() => {
     fetch('/api/admin-auth', { method: 'GET' })
-      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents() } })
+      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents(); fetchSuggestions() } })
       .catch(() => {})
   }, [])
 
@@ -94,6 +104,7 @@ export default function AdminPage() {
         setAuthed(true)
         fetchMembers()
         fetchEvents()
+        fetchSuggestions()
       } else {
         setLoginError('Incorrect password.')
       }
@@ -105,10 +116,7 @@ export default function AdminPage() {
 
   async function fetchMembers() {
     setLoading(true)
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
     if (data) {
       setPending(data.filter((m: Member) => !m.is_approved))
       setApproved(data.filter((m: Member) => m.is_approved))
@@ -117,13 +125,18 @@ export default function AdminPage() {
   }
 
   async function fetchEvents() {
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false })
     if (data) {
       setPendingEvents(data.filter((e: Event) => !e.is_approved))
       setApprovedEvents(data.filter((e: Event) => e.is_approved))
+    }
+  }
+
+  async function fetchSuggestions() {
+    const { data } = await supabase.from('suggestions').select('*').order('created_at', { ascending: false })
+    if (data) {
+      setPendingSuggestions(data.filter((s: Suggestion) => !s.is_approved))
+      setApprovedSuggestions(data.filter((s: Suggestion) => s.is_approved))
     }
   }
 
@@ -141,13 +154,23 @@ export default function AdminPage() {
     setProcessing(null)
   }
 
+  async function approveSuggestion(id: string) {
+    setProcessing(id)
+    await supabase.from('suggestions').update({ is_approved: true }).eq('id', id)
+    await fetchSuggestions()
+    setProcessing(null)
+  }
+
+  async function rejectSuggestion(id: string) {
+    setProcessing(id)
+    await supabase.from('suggestions').delete().eq('id', id)
+    await fetchSuggestions()
+    setProcessing(null)
+  }
+
   async function approveMember(id: string) {
     setProcessing(id)
-    const { data: member } = await supabase
-      .from('profiles')
-      .select('username, email')
-      .eq('id', id)
-      .single()
+    const { data: member } = await supabase.from('profiles').select('username, email').eq('id', id).single()
     await supabase.from('profiles').update({ is_approved: true }).eq('id', id)
     if (member?.email) {
       await fetch('/api/welcome-member', {
@@ -176,17 +199,8 @@ export default function AdminPage() {
             <h1 style={{ ...s.logo, marginBottom: '6px' }}>The Lounge</h1>
             <p style={{ margin: '0 0 28px', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999' }}>Admin Access</p>
             {loginError && <p style={s.error}>{loginError}</p>}
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
-              style={s.input}
-            />
-            <button onClick={handleLogin} style={s.submitBtn} disabled={loginLoading}>
-              {loginLoading ? 'Checking...' : 'Enter →'}
-            </button>
+            <input type="password" placeholder="Enter password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleLogin() }} style={s.input} />
+            <button onClick={handleLogin} style={s.submitBtn} disabled={loginLoading}>{loginLoading ? 'Checking...' : 'Enter →'}</button>
           </div>
         </div>
       </main>
@@ -196,9 +210,7 @@ export default function AdminPage() {
   return (
     <main style={s.page}>
       <div style={s.ticker}>
-        <p style={s.tickerText}>
-          For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running
-        </p>
+        <p style={s.tickerText}>For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running</p>
       </div>
 
       <div style={s.header}>
@@ -208,7 +220,7 @@ export default function AdminPage() {
 
       <div style={s.main}>
 
-        {/* Member Stats */}
+        {/* Stats */}
         <div style={s.stats}>
           <div style={s.statCard}>
             <p style={s.statNum}>{pending.length}</p>
@@ -222,14 +234,62 @@ export default function AdminPage() {
             <p style={s.statNum}>{pendingEvents.length}</p>
             <p style={s.statLabel}>Pending Events</p>
           </div>
+          <div style={s.statCard}>
+            <p style={s.statNum}>{pendingSuggestions.length}</p>
+            <p style={s.statLabel}>Pending Suggestions</p>
+          </div>
         </div>
 
+        {/* Pending Suggestions */}
+        <p style={s.sectionTitle}>Suggestions Pending Approval</p>
+        {pendingSuggestions.length === 0 ? (
+          <div style={s.empty}><p style={s.emptyText}>No pending suggestions ☕</p></div>
+        ) : (
+          pendingSuggestions.map(suggestion => (
+            <div key={suggestion.id} style={s.card}>
+              <div style={s.cardAccent} />
+              <div style={s.cardBody}>
+                <div style={s.memberInfo}>
+                  <p style={{ ...s.memberMeta, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{suggestion.type}</p>
+                  <p style={s.memberName}>{suggestion.message}</p>
+                  <p style={s.memberMeta}>{new Date(suggestion.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                </div>
+                <div style={s.actions}>
+                  <button style={s.rejectBtn} onClick={() => rejectSuggestion(suggestion.id)} disabled={processing === suggestion.id}>Reject</button>
+                  <button style={s.approveBtn} onClick={() => approveSuggestion(suggestion.id)} disabled={processing === suggestion.id}>
+                    {processing === suggestion.id ? '...' : 'Approve →'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+
+        {/* Approved Suggestions */}
+        {approvedSuggestions.length > 0 && (
+          <>
+            <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Approved Suggestions</p>
+            {approvedSuggestions.map(suggestion => (
+              <div key={suggestion.id} style={s.card}>
+                <div style={{ ...s.cardAccent, backgroundColor: '#4caf7d' }} />
+                <div style={s.cardBody}>
+                  <div style={s.memberInfo}>
+                    <p style={{ ...s.memberMeta, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{suggestion.type}</p>
+                    <p style={s.memberName}>{suggestion.message}</p>
+                  </div>
+                  <div style={s.actions}>
+                    <button style={s.rejectBtn} onClick={() => rejectSuggestion(suggestion.id)} disabled={processing === suggestion.id}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
         {/* Pending Events */}
-        <p style={s.sectionTitle}>Events Pending Approval</p>
+        <p style={{ ...s.sectionTitle, marginTop: '32px' }}>Events Pending Approval</p>
         {pendingEvents.length === 0 ? (
-          <div style={s.empty}>
-            <p style={s.emptyText}>No pending events ☕</p>
-          </div>
+          <div style={s.empty}><p style={s.emptyText}>No pending events ☕</p></div>
         ) : (
           pendingEvents.map(event => (
             <div key={event.id} style={s.card}>
@@ -278,9 +338,7 @@ export default function AdminPage() {
         {loading ? (
           <div style={s.empty}><p style={s.emptyText}>Loading...</p></div>
         ) : pending.length === 0 ? (
-          <div style={s.empty}>
-            <p style={s.emptyText}>No pending members — you're all caught up ☕</p>
-          </div>
+          <div style={s.empty}><p style={s.emptyText}>No pending members — you're all caught up ☕</p></div>
         ) : (
           pending.map(member => (
             <div key={member.id} style={s.card}>
