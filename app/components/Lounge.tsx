@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -236,6 +236,37 @@ export default function Lounge() {
   setComposeEvent(false);
   showToast("Event submitted for approval");
 };
+useEffect(() => {
+  async function loadEvents() {
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .eq('is_approved', true)
+    if (data && data.length > 0) {
+      const dbEvents = data.map((e: any) => ({
+        id: e.id,
+        type: 'social',
+        title: e.title,
+        host: 'Community',
+        hostAvatar: '📅',
+        hostLoc: 'GMT',
+        date: new Date(`${e.date}T${e.time}`),
+        timezone: 'GMT',
+        duration: 60,
+        dropIn: false,
+        description: e.description || '',
+        attendees: [],
+        approved: true,
+        link: e.link || '',
+      }))
+      setEvents((prev: any) => [
+        ...prev.filter((e: any) => !e.id.toString().startsWith('e')),
+        ...dbEvents,
+      ])
+    }
+  }
+  loadEvents()
+}, [])
 
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
