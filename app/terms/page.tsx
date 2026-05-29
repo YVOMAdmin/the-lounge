@@ -30,7 +30,7 @@ export default function TermsPage() {
           <p>To use The Lounge, you must:</p>
           <ul style={styles.ul}>
             <li>Be 18 years of age or older</li>
-            <li>Work in or have worked in an administrative, executive support, operations, or related professional role</li>
+            <li>Work in or have worked in an administrative, executive support, operations, or related professional role — remote or office-based</li>
             <li>Have been invited via an approved invite link</li>
             <li>Agree to and comply with these Terms</li>
           </ul>
