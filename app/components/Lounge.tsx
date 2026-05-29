@@ -205,8 +205,15 @@ export default function Lounge() {
     showToast(was?"RSVP cancelled":"You're going! ✓");
   };
   const submitEvent = async () => {
-  if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;
-
+  if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;  
+  await supabase.from('events').insert({
+    title: eventDraft.title,
+    date: eventDraft.date,
+    time: eventDraft.time,
+    description: eventDraft.description,
+    link: eventDraft.link,
+    is_approved: false,
+  });
   await fetch('/api/event-notification', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
