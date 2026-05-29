@@ -908,7 +908,15 @@ useEffect(() => {
               </div>
               <div className="input-row" style={{marginTop:8}}>
                 <input className="input-field" style={{marginBottom:0}} placeholder="Timezone (e.g. GMT)" value={eventDraft.timezone} onChange={(e:any)=>setEventDraft((d:any)=>({...d,timezone:e.target.value}))}/>
-                <input className="input-field" style={{marginBottom:0}} type="number" placeholder="Duration (mins)" value={eventDraft.duration} onChange={(e:any)=>setEventDraft((d:any)=>({...d,duration:e.target.value}))}/>
+                <div style={{display:'flex',gap:8}}>
+  <select className="input-field" style={{marginBottom:0}} value={Math.floor(eventDraft.duration/60)} onChange={(e:any)=>setEventDraft((d:any)=>({...d,duration:parseInt(e.target.value)*60+d.duration%60}))}>
+    {[0,1,2,3,4].map(h=><option key={h} value={h}>{h}h</option>)}
+  </select>
+  <select className="input-field" style={{marginBottom:0}} value={eventDraft.duration%60} onChange={(e:any)=>setEventDraft((d:any)=>({...d,duration:Math.floor(d.duration/60)*60+parseInt(e.target.value)}))}>
+    {[0,15,30,45].map(m=><option key={m} value={m}>{m}min</option>)}
+  </select>
+</div>
+
               </div>
               <label className="dropin-toggle">
                 <input type="checkbox" checked={eventDraft.dropIn} onChange={(e:any)=>setEventDraft((d:any)=>({...d,dropIn:e.target.checked}))}/>
