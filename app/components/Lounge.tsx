@@ -1,6 +1,12 @@
 'use client'
 
 import { useState, useMemo } from "react";
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');`;
 
@@ -205,7 +211,7 @@ export default function Lounge() {
     showToast(was?"RSVP cancelled":"You're going! ✓");
   };
   const submitEvent = async () => {
-  if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;  
+  if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;
   await supabase.from('events').insert({
     title: eventDraft.title,
     date: eventDraft.date,
