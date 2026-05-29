@@ -207,8 +207,17 @@ export default function Lounge() {
   const submitEvent=()=>{
     if(!eventDraft.title.trim()||!eventDraft.date||!eventDraft.time)return;
     setSubmittedEvent(true);setComposeEvent(false);showToast("Event submitted for approval ✓");
-  };
-
+  };fetch('/api/event-notification', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    title: eventDraft.title,
+    date: eventDraft.date,
+    time: eventDraft.time,
+    description: eventDraft.description,
+    link: eventDraft.link,
+  })
+});
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
   const calCells:any[]=[];
