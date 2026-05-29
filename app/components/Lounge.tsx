@@ -238,6 +238,23 @@ export default function Lounge() {
   showToast("Event submitted for approval");
 };
 useEffect(() => {
+  async function checkApproval() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_approved')
+        .eq('id', session.user.id)
+        .single()
+      if (profile && !profile.is_approved) {
+        await supabase.auth.signOut()
+        window.location.href = '/pending-approval'
+      }
+    }
+  }
+  checkApproval()
+}, [])
+useEffect(() => {
   async function loadEvents() {
     const { data } = await supabase
       .from('events')
