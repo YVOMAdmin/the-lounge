@@ -813,13 +813,29 @@ useEffect(() => {
               </div>
             )}
             {activeTab==="feed"&&(
-              <div className="rail-card">
-                <div className="rail-title">Trending</div>
-                {["#JustOneMoreReschedule","#847UnreadEmails","#ASAPAtFivePM","#TheAgendaMeeting","#NewExpensesSystem","#ManagingUpIsAJob"].map((t:string)=>(
-                  <div key={t}><span className="tag" onClick={()=>setSearch(t.slice(1))}>{t}</span></div>
-                ))}
-              </div>
-            )}
+  <div className="rail-card">
+    <div className="rail-title">Trending</div>
+    {["#JustOneMoreReschedule","#847UnreadEmails","#ASAPAtFivePM","#TheAgendaMeeting","#NewExpensesSystem","#ManagingUpIsAJob"].map((t:string)=>(
+      <div key={t}><span className="tag" onClick={()=>setSearch(t.slice(1))}>{t}</span></div>
+    ))}
+    {events.filter((e:any)=>e.approved&&new Date(e.date)>=new Date()).slice(0,3).length>0&&(
+      <>
+        <div style={{height:1,background:'#F0EDE8',margin:'12px 0'}}/>
+        <div className="rail-title" style={{marginBottom:8}}>Upcoming Events</div>
+        {events.filter((e:any)=>e.approved&&new Date(e.date)>=new Date()).sort((a:any,b:any)=>new Date(a.date).getTime()-new Date(b.date).getTime()).slice(0,3).map((e:any)=>{
+          const d=new Date(e.date);
+          return(
+            <div key={e.id} style={{marginBottom:10,cursor:'pointer'}} onClick={()=>setActiveTab('events')}>
+              <div style={{fontSize:12,fontWeight:600,color:'#1A1814',fontFamily:"'Fraunces',serif",lineHeight:1.3}}>{e.title}</div>
+              <div style={{fontSize:11,color:'#9E9587',marginTop:2}}>{fmtDate(d)} · {fmt(d)}</div>
+            </div>
+          );
+        })}
+      </>
+    )}
+  </div>
+)}
+
           </aside>
         </div>
       </div>
