@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
+import { ratelimit } from '@/lib/ratelimit';
+import { headers } from 'next/headers';
+
 
 export async function POST(request: Request) {
   const body = await request.json();
   const username = body.record?.username || 'Someone';
   const location = body.record?.location || 'unknown location';
+
+  const ip = (await headers()).get('x-forwarded-for') ?? 'anonymous'
+  const { success } = await ratelimit.limit(ip)
+  if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
