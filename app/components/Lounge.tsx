@@ -630,7 +630,8 @@ useEffect(() => {
             {search&&<button className="search-clear" onClick={()=>setSearch("")}>✕</button>}
           </div>
           <div className="hdr-actions">
-            <button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
+            <a href="/suggestion-box" className="btn-icon" style={{textDecoration:'none'}}>📮 Suggestion Box</a>
+<button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
             <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
           </div>
         </div>
