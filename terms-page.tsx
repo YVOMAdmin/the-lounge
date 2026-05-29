@@ -22,7 +22,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="2. What The Lounge Is">
-          <p>The Lounge is a private, invite-only online community for remote administrative professionals. It is a space to share experiences, seek advice, vent, celebrate wins, and connect with others who understand the realities of remote admin work.</p>
+          <p>The Lounge is a private, invite-only online community for administrative and executive support professionals — remote or office-based. It is a space to share experiences, seek advice, vent, celebrate wins, and connect with others who understand the realities of the work you do.</p>
           <p style={styles.mt}>The Lounge is not a public forum. Access is restricted to approved members only.</p>
         </Section>
 
@@ -53,7 +53,7 @@ export default function TermsPage() {
           <p style={{...styles.mt, fontWeight: 600, color: "#1A1814"}}>You agree to:</p>
           <ul style={styles.ul}>
             <li>Be respectful of other members, even when you disagree</li>
-            <li>Keep conversations relevant to remote work, admin, professional life, and community topics</li>
+            <li>Keep conversations relevant to work, admin, and professional life, admin, professional life, and community topics</li>
             <li>Support fellow members — this is a space to lift each other up</li>
             <li>Post honestly and authentically</li>
             <li>Keep what is shared here within the community</li>

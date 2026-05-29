@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         <hr style={styles.rule}/>
 
         <Section title="1. Who We Are">
-          <p>The Lounge Community ("The Lounge", "we", "us", "our") is a private online community platform for remote administrative professionals. The Lounge is operated by Your Virtual Office Manager Ltd, a company registered in England and Wales.</p>
+          <p>The Lounge Community ("The Lounge", "we", "us", "our") is a private online community platform for administrative and executive support professionalsdministrative professionals. The Lounge is operated by Your Virtual Office Manager Ltd, a company registered in England and Wales.</p>
           <p style={styles.mt}><strong>Data Controller:</strong> Your Virtual Office Manager Ltd<br/>Contact: <a href="mailto:hello@theloungecommunity.co.uk" style={styles.link}>hello@theloungecommunity.co.uk</a></p>
         </Section>
 
