@@ -218,6 +218,7 @@ export default function Lounge() {
     time: eventDraft.time,
     description: eventDraft.description,
     link: eventDraft.link,
+    type: eventDraft.type,
     is_approved: false,
   });
   await fetch('/api/event-notification', {
@@ -245,7 +246,7 @@ useEffect(() => {
     if (data && data.length > 0) {
       const dbEvents = data.map((e: any) => ({
         id: e.id,
-        type: 'social',
+        type: e.type || 'social',
         title: e.title,
         host: 'Community',
         hostAvatar: '📅',
