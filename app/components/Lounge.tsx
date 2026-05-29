@@ -204,20 +204,26 @@ export default function Lounge() {
     setEvents((prev:any)=>prev.map((e:any)=>e.id===eventId?{...e,attendees:was?e.attendees.filter((a:string)=>a!==myName):[...e.attendees,myName]}:e));
     showToast(was?"RSVP cancelled":"You're going! ✓");
   };
-  const submitEvent=()=>{
-    if(!eventDraft.title.trim()||!eventDraft.date||!eventDraft.time)return;
-    setSubmittedEvent(true);setComposeEvent(false);showToast("Event submitted for approval ✓");
-  };fetch('/api/event-notification', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    title: eventDraft.title,
-    date: eventDraft.date,
-    time: eventDraft.time,
-    description: eventDraft.description,
-    link: eventDraft.link,
-  })
-});
+  const submitEvent = async () => {
+  if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;
+
+  await fetch('/api/event-notification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: eventDraft.title,
+      date: eventDraft.date,
+      time: eventDraft.time,
+      description: eventDraft.description,
+      link: eventDraft.link,
+    })
+  });
+
+  setSubmittedEvent(true);
+  setComposeEvent(false);
+  showToast("Event submitted for approval");
+};
+
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
   const calCells:any[]=[];
