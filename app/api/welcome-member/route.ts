@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { ratelimit } from '@/lib/ratelimit';
+import { headers } from 'next/headers';
+
 
 function buildWelcomeEmail(username: string): string {
   return `<!DOCTYPE html>
@@ -81,7 +84,7 @@ function buildWelcomeEmail(username: string): string {
                       <tr>
                         <td style="padding:16px 20px;">
                           <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#c9a96e;letter-spacing:1px;text-transform:uppercase;">What happens in The Lounge, stays in The Lounge</p>
-                          <p style="margin:0;font-size:13px;color:#aaa;font-family:'Georgia',serif;line-height:1.6;">Members often share candid, personal, and professionally sensitive content. Screenshotting or sharing another member's words outside the community is a serious violation and will result in immediate removal.</p>
+                          <p style="margin:0;font-size:13px;color:#aaa;font-family:'Georgia',serif;line-height:1.6;">This is a space for candid, personal conversation. Screenshotting or sharing another member's words outside the community is a serious violation and will result in immediate removal.</p>
                         </td>
                       </tr>
                     </table>
@@ -124,6 +127,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { username, email } = body;
+const ip = (await headers()).get('x-forwarded-for') ?? 'anonymous'
+const { success } = await ratelimit.limit(ip)
+if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
     if (!email) {
       return NextResponse.json({ error: 'No email provided' }, { status: 400 });
