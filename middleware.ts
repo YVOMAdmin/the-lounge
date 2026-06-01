@@ -1,35 +1,43 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.getAll()
-    .find(c => c.name.includes('auth-token'))?.value
+export async function middleware(request: NextRequest) {
+  const response = NextResponse.next({ request })
 
-  if (!token) {
-    return NextResponse.next()
-  }
-
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?select=is_approved`,
-      {
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    )
-    const data = await res.json()
-if (!data?.[0] || data?.[0]?.is_approved === false) {
-      return NextResponse.redirect(new URL('/pending-approval', req.url))
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
     }
-  } catch {
-    return NextResponse.next()
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  return NextResponse.next()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_approved')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !profile.is_approved) {
+    return NextResponse.redirect(new URL('/auth/pending', request.url))
+  }
+
+  return response
 }
 
 export const config = {
-matcher: ['/((?!_next/static|_next/image|favicon.ico|auth|api).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|auth|api).*)'],
 }
