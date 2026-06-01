@@ -31,5 +31,5 @@ if (!data?.[0] || data?.[0]?.is_approved === false) {
 }
 
 export const config = {
-  matcher: ['/'],
+matcher: ['/((?!_next/static|_next/image|favicon.ico|auth|api).*)'],
 }
