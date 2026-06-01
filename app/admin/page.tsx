@@ -186,12 +186,18 @@ body: JSON.stringify({ password, totp }),
     setProcessing(null)
   }
 
-  async function rejectMember(id: string) {
-    setProcessing(id)
-    await supabase.from('profiles').delete().eq('id', id)
-    await fetchMembers()
-    setProcessing(null)
-  }
+async function rejectMember(id: string) {
+  setProcessing(id)
+  await fetch('/api/admin-remove-member', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: id }),
+  })
+  await supabase.from('profiles').delete().eq('id', id)
+  await fetchMembers()
+  setProcessing(null)
+}
+
 
   if (!authed) {
     return (
