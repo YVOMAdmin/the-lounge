@@ -158,6 +158,7 @@ export default function Lounge() {
   const [myAvatar] = useState("☕");
   const [myName]   = useState("You");
   const [myLoc]    = useState("GMT");
+const [userEmail, setUserEmail] = useState<string | null>(null)
 
   const feed = useMemo(()=>{
     let list = filter==="all" ? posts : posts.filter((p:any)=>p.category===filter||p.type==="poll");
@@ -248,6 +249,7 @@ useEffect(() => {
   async function checkApproval() {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
+      setUserEmail(session.user.email ?? null)
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_approved')
@@ -634,6 +636,11 @@ useEffect(() => {
           </div>
           <div className="hdr-actions">
             <a href="/suggestion-box" className="btn-icon" style={{textDecoration:'none'}}>📮 Suggestion Box</a>
+            {userEmail === 'hello@theloungecommunity.co.uk' && (
+  <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
+    ← Admin
+  </a>
+)}
 <button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
             <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
           </div>
