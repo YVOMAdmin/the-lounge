@@ -159,6 +159,9 @@ export default function Lounge() {
   const [myName]   = useState("You");
   const [myLoc]    = useState("GMT");
 const [userEmail, setUserEmail] = useState<string | null>(null)
+const [notifications, setNotifications] = useState<any[]>([])
+const [showNotifications, setShowNotifications] = useState(false)
+
 
   const feed = useMemo(()=>{
     let list = filter==="all" ? posts : posts.filter((p:any)=>p.category===filter||p.type==="poll");
@@ -250,6 +253,8 @@ useEffect(() => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       setUserEmail(session.user.email ?? null)
+      fetchNotifications(session.user.id)
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_approved')
@@ -261,6 +266,12 @@ window.location.href = '/auth/pending'
       }
     }
   }
+  async function fetchNotifications(userId: string) {
+  const res = await fetch(`/api/notifications?userId=${userId}`)
+  const { data } = await res.json()
+  if (data) setNotifications(data)
+}
+
   checkApproval()
 }, [])
 useEffect(() => {
@@ -635,6 +646,40 @@ useEffect(() => {
             {search&&<button className="search-clear" onClick={()=>setSearch("")}>✕</button>}
           </div>
           <div className="hdr-actions">
+            <div style={{ position: 'relative' }}>
+  <button className="btn-icon" onClick={() => {
+    setShowNotifications(!showNotifications)
+    if (!showNotifications) {
+      fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: notifications[0]?.user_id })
+      }).then(() => setNotifications(n => n.map(x => ({ ...x, is_read: true }))))
+    }
+  }}>
+    🔔
+    {notifications.filter(n => !n.is_read).length > 0 && (
+      <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {notifications.filter(n => !n.is_read).length}
+      </span>
+    )}
+  </button>
+  {showNotifications && (
+    <div style={{ position: 'absolute', right: 0, top: '36px', width: '280px', backgroundColor: '#fff', border: '1px solid #E8E3DC', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '320px', overflowY: 'auto' }}>
+      {notifications.length === 0 ? (
+        <p style={{ padding: '16px', textAlign: 'center', color: '#9E9587', fontSize: '13px' }}>No notifications yet</p>
+      ) : (
+        notifications.map(n => (
+          <div key={n.id} style={{ padding: '12px 16px', borderBottom: '1px solid #f0ede8', backgroundColor: n.is_read ? '#fff' : '#fdf8f3' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: '#1A1814' }}>{n.message}</p>
+            <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9E9587' }}>{new Date(n.created_at).toLocaleDateString()}</p>
+          </div>
+        ))
+      )}
+    </div>
+  )}
+</div>
+
             <a href="/suggestion-box" className="btn-icon" style={{textDecoration:'none'}}>📮 Suggestion Box</a>
             {userEmail === 'hello@theloungecommunity.co.uk' && (
   <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
