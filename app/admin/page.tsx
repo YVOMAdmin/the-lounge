@@ -174,7 +174,12 @@ body: JSON.stringify({ password, totp }),
   async function approveMember(id: string) {
     setProcessing(id)
     const { data: member } = await supabase.from('profiles').select('username, email').eq('id', id).single()
-    await supabase.from('profiles').update({ is_approved: true }).eq('id', id)
+    await fetch('/api/admin-profiles', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId: id }),
+})
+
     if (member?.email) {
       await fetch('/api/welcome-member', {
         method: 'POST',
