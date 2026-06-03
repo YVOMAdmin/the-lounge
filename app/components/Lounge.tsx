@@ -183,11 +183,12 @@ const [showNotifications, setShowNotifications] = useState(false)
   const nextMonth = ()=>{ if(calMonth===11){setCalMonth(0);setCalYear((y:number)=>y+1);}else setCalMonth((m:number)=>m+1); setSelectedDay(null); };
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
-  const toggleLike = (id:any)=>{
-    const was=liked.has(id);
-    setLiked((prev:any)=>{const n=new Set(prev);was?n.delete(id):n.add(id);return n;});
-    setPosts((prev:any)=>prev.map((p:any)=>p.id===id&&p.likes!=null?{...p,likes:was?p.likes-1:p.likes+1}:p));
-  };
+ const toggleLike = (id: any) => {
+  const was = liked.has(id);
+  setLiked((prev: any) => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
+  setPosts((prev: any) => prev.map((p: any) => p.id === id && p.likes != null ? { ...p, likes: was ? p.likes - 1 : p.likes + 1 } : p));
+};
+
   const toggleReplies=(id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;});
   const submitReply=(postId:any)=>{
     const text=(replyDrafts[postId]||"").trim();
