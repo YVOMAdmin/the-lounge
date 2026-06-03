@@ -183,10 +183,11 @@ const [showNotifications, setShowNotifications] = useState(false)
   const nextMonth = ()=>{ if(calMonth===11){setCalMonth(0);setCalYear((y:number)=>y+1);}else setCalMonth((m:number)=>m+1); setSelectedDay(null); };
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
- const toggleLike = (id: any) => {
+ const toggleLike = async (id: any) => {
   const was = liked.has(id);
   setLiked((prev: any) => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
   setPosts((prev: any) => prev.map((p: any) => p.id === id && p.likes != null ? { ...p, likes: was ? p.likes - 1 : p.likes + 1 } : p));
+  if (!was) { const post = posts.find((p:any)=>p.id===id); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'like',post_id:id,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} liked your post`})}) } }
 };
 
   const toggleReplies=(id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;});
