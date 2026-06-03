@@ -222,11 +222,15 @@ async function rejectMember(id: string) {
       <div style={s.ticker}>
         <p style={s.tickerText}>For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running &nbsp;·&nbsp; For the ones who keep it all running</p>
       </div>
+  <div style={s.header}>
+  <h1 style={s.logo}>The Lounge</h1>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <span style={{ fontSize: '13px', color: '#999', fontFamily: 'Georgia, serif' }}>Paige - Your Virtual Office Manager</span>
+    <span style={s.badge}>Admin</span>
+    <a href="/" style={{ padding: '8px 16px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '24px', fontSize: '12px', fontFamily: 'Georgia, serif', textDecoration: 'none', fontWeight: 'bold' }}>Enter Platform →</a>
+  </div>
+</div>
 
-      <div style={s.header}>
-        <h1 style={s.logo}>The Lounge</h1>
-        <span style={s.badge}>Admin</span>
-      </div>
 
       <div style={s.main}>
 
