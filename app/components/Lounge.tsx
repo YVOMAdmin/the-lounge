@@ -191,12 +191,13 @@ const [showNotifications, setShowNotifications] = useState(false)
 };
 
   const toggleReplies=(id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;});
-  const submitReply=(postId:any)=>{
+ const submitReply=async(postId:any)=>{
     const text=(replyDrafts[postId]||"").trim();
     if(!text)return;
     setPosts((prev:any)=>prev.map((p:any)=>p.id===postId?{...p,replies:[...(p.replies||[]),{id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text}]}:p));
     setReplyDrafts((prev:any)=>({...prev,[postId]:""}));
     showToast("Reply posted ✓");
+    const post = posts.find((p:any)=>p.id===postId); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'reply',post_id:postId,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} replied to your post`})}) }
   };
   const voteOnPoll=(pollId:any,optId:any)=>{
     if(votedPolls[pollId])return;
