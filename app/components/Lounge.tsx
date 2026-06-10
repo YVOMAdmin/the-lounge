@@ -691,6 +691,7 @@ useEffect(() => {
 )}
 <button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
             <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
+            <button className="btn-icon" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
           </div>
         </div>
       </header>
