@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');`;
+const FONT = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`;
 
 const CATEGORIES = [
   { id: "rant",       label: "Rant",         emoji: "🔥", color: "#F4622A" },
@@ -134,6 +134,18 @@ const fmtEnd = (d: Date, duration: number) => {
 const fmtDate= (d: Date)    => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 
 export default function Lounge() {
+  const TICKER_SEGS = [
+  { text: 'For the ones who keep it all running', bg: '#FFB3C6', color: '#1A1208' },
+  { text: '✦', bg: '#FFB3C6', color: '#E8845A' },
+  { text: 'The Lounge Community', bg: '#B8F0D0', color: '#1A1208' },
+  { text: '✦', bg: '#B8F0D0', color: '#7B5EA7' },
+  { text: 'Admin & EA Support Professionals', bg: '#C5B8F5', color: '#1A1208' },
+  { text: '✦', bg: '#C5B8F5', color: '#E8845A' },
+  { text: 'For the ones who keep it all running', bg: '#FFE5B4', color: '#1A1208' },
+  { text: '✦', bg: '#FFE5B4', color: '#FF4D4D' },
+  { text: 'The Lounge Community', bg: '#B3D9FF', color: '#1A1208' },
+  { text: '✦', bg: '#B3D9FF', color: '#7B5EA7' },
+]
   const [posts, setPosts]             = useState(SEED_POSTS);
   const [events, setEvents]           = useState(SEED_EVENTS);
   const [filter, setFilter]           = useState("all");
@@ -430,41 +442,42 @@ useEffect(() => {
     <style>{`
       ${FONT}
       *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-      body{background:#F5F2ED;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;min-height:100vh}
-      .ticker{background:#1A1814;overflow:hidden;height:30px;display:flex;align-items:center}
-      .ticker-track{display:flex;animation:ticker 28s linear infinite;white-space:nowrap}
-      .ticker-track:hover{animation-play-state:paused}
-      @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-      .ticker-text{font-family:'Fraunces',serif;font-style:italic;font-size:12px;color:#9E9587;letter-spacing:0.3px;padding:0 8px}
-      .hdr{position:sticky;top:30px;z-index:50;background:rgba(245,242,237,0.94);backdrop-filter:blur(16px);border-bottom:1px solid #E2DDD6;padding:0 28px}
-      .hdr-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;gap:12px}
-      .brand-name{font-family:'Fraunces',serif;font-weight:700;font-size:21px;color:#1A1814;letter-spacing:-0.5px;white-space:nowrap}
+     body{background:#F5F0E8;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;min-height:100vh}
+.ticker{overflow:hidden;display:flex;height:34px;align-items:stretch}
+.ticker-track{display:inline-flex;animation:ticker 32s linear infinite;align-items:stretch}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
+.hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 16px}
+.hdr-inner{display:flex;align-items:center;height:72px;gap:12px}
+.brand-name{display:none}
       .search-wrap{flex:1;max-width:280px;position:relative}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
       .search-input:focus{background:#fff;border-color:#B8B0A4}
       .search-input::placeholder{color:#B8B0A4}
       .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#B8B0A4;pointer-events:none}
       .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#B8B0A4;cursor:pointer;font-size:14px}
-      .hdr-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
-      .btn-icon{background:transparent;color:#1A1814;border:1px solid #D4CEC5;border-radius:7px;padding:6px 12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:12px;transition:all 0.15s}
-      .btn-icon:hover{border-color:#1A1814}
-      .btn-icon-solid{background:#1A1814;color:#F5F2ED;border:none;border-radius:7px;padding:6px 12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:12px;transition:background 0.15s}
-      .btn-icon-solid:hover{background:#2D2922}
+.hdr-actions{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end;min-width:0}
+.hdr-actions::-webkit-scrollbar{display:none}
+.hdr-actions>*{flex-shrink:0}
+.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s}
+.btn-icon:hover{background:#E8845A;color:#fff}
+.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s}
+.btn-icon-solid:hover{background:#d4724a}
       .btn-host{background:transparent;border:1px solid;border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
       .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
       .layout{display:flex;gap:28px}
       .feed{flex:1;min-width:0}
       .rail{width:236px;flex-shrink:0}
       @media(max-width:680px){.rail{display:none}}
-      .tabs{display:flex;gap:4px;margin-bottom:20px;background:#EDE9E3;border-radius:10px;padding:4px}
-      .tab{flex:1;padding:7px;border:none;background:transparent;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:#6B6358;border-radius:7px;cursor:pointer;transition:all 0.15s}
-      .tab.on{background:#fff;color:#1A1814;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.tabs{display:flex;gap:6px;margin-bottom:20px;padding:0}
+.tab{flex:1;padding:10px;border:2.5px solid #E8845A;background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#E8845A;border-radius:100px;cursor:pointer;transition:all 0.15s;text-align:center}
+.tab.on{background:#E8845A;color:#fff;border-color:#E8845A}
       .filters{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
-      .chip{padding:5px 14px;border-radius:100px;border:1px solid #D4CEC5;background:transparent;color:#6B6358;font-family:'IBM Plex Sans',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.15s}
-      .chip:hover{border-color:#B8B0A4;color:#1A1814}
-      .chip.on{background:#1A1814;border-color:#1A1814;color:#F5F2ED}
-      .card{background:#fff;border:1px solid #E8E3DC;border-radius:14px;padding:20px 20px 14px;margin-bottom:12px;transition:box-shadow 0.15s,transform 0.15s;position:relative;overflow:hidden}
-      .card:hover{box-shadow:0 4px 24px rgba(0,0,0,0.06);transform:translateY(-1px)}
+.chip{padding:3px 9px;border-radius:100px;border:1.5px solid #7B5EA7;background:transparent;color:#7B5EA7;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s}
+.chip:hover{background:#7B5EA7;color:#fff}
+.chip.on{background:#7B5EA7;border-color:#7B5EA7;color:#fff}
+.card{background:#fff;border:2px solid #E8845A;border-radius:16px;padding:20px 20px 14px;margin-bottom:12px;transition:box-shadow 0.15s,transform 0.15s;position:relative;overflow:hidden}
+.card:hover{box-shadow:4px 4px 0 #E8845A;transform:translateY(-2px)}
       .card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
       .card.rant::after{background:#F4622A}.card.advice::after{background:#7C5CFC}.card.experience::after{background:#0EAD8B}.card.wins::after{background:#F5A623}.card.venting::after{background:#5B8DD9}.card.poll-card::after{background:linear-gradient(90deg,#7C5CFC,#5B8DD9)}
       .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -498,7 +511,7 @@ useEffect(() => {
       .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:flex-start}
       .reply-input{flex:1;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:36px}
-      .reply-send{background:#1A1814;border:none;border-radius:8px;color:#F5F2ED;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'IBM Plex Sans',sans-serif}
+.reply-send{background:#E8845A;border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
       .reply-send:disabled{opacity:0.3;cursor:default}
       .no-results{text-align:center;padding:48px 20px}
       .no-results-emoji{font-size:36px;margin-bottom:12px}
@@ -542,10 +555,10 @@ useEffect(() => {
       .event-host-avi{font-size:16px}
       .event-host-name{font-size:12px;font-weight:600;color:#1A1814;font-family:'Fraunces',serif}
       .event-dur{font-size:11px;color:#9E9587}
-      .rsvp-btn{background:#1A1814;color:#F5F2ED;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s}
-      .rsvp-btn:hover{background:#2D2922}
-      .rsvp-btn.going{background:#0EAD8B}
-      .rsvp-btn.going:hover{background:#0B9678}
+.rsvp-btn{background:#E8845A;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s}
+.rsvp-btn:hover{background:#d4724a}
+.rsvp-btn.going{background:#2DC653}
+.rsvp-btn.going:hover{background:#25a845}
       .join-btn{background:#EDF9F5;color:#0EAD8B;border:1px solid #B8EDD8;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;text-decoration:none;transition:all 0.15s}
 
       .cal-section-head{display:flex;align-items:center;justify-content:space-between;margin:24px 0 14px}
@@ -574,10 +587,10 @@ useEffect(() => {
       .section-divider-text{font-size:10px;color:#9E9587;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
 
       /* Sidebar */
-      .rail-card{background:#fff;border:1px solid #E8E3DC;border-radius:12px;padding:16px;margin-bottom:12px}
-      .rail-title{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:#1A1814;margin-bottom:10px}
-      .rail-num{font-family:'Fraunces',serif;font-weight:700;font-size:26px;color:#1A1814;letter-spacing:-1px;line-height:1}
-      .rail-sub{font-size:11px;color:#9E9587;margin-top:2px;margin-bottom:10px}
+.rail-card{background:#fff;border:2px solid #E8845A;border-radius:14px;padding:16px;margin-bottom:12px}
+.rail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#E8845A;margin-bottom:10px}
+.rail-num{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:#E8845A;letter-spacing:-1px;line-height:1}
+.rail-sub{font-size:11px;color:#9E9587;margin-top:2px;margin-bottom:10px}
       .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#0EAD8B;margin-right:5px;animation:blink 2.2s infinite}
       @keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
       .tag{display:inline-block;font-size:12px;color:#7C5CFC;margin-bottom:7px;cursor:pointer}
@@ -607,9 +620,9 @@ useEffect(() => {
       .cat-opt{padding:5px 13px;border-radius:100px;border:1px solid #D4CEC5;background:transparent;color:#6B6358;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:'IBM Plex Sans',sans-serif}
       .cat-opt.sel{background:#1A1814;border-color:#1A1814;color:#F5F2ED}
       .modal-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
-      .btn-cancel{background:none;border:1px solid #D4CEC5;border-radius:8px;color:#6B6358;font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:13px;padding:8px 16px;cursor:pointer}
-      .btn-submit{background:#1A1814;border:none;border-radius:8px;color:#F5F2ED;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;padding:8px 20px;cursor:pointer}
-      .btn-submit:disabled{opacity:0.3;cursor:default}
+.btn-cancel{background:none;border:2px solid #7B5EA7;border-radius:100px;color:#7B5EA7;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:8px 16px;cursor:pointer}
+.btn-submit{background:#E8845A;border:none;border-radius:100px;color:#fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:8px 20px;cursor:pointer}
+.btn-submit:disabled{opacity:0.3;cursor:default}
       .section-label{font-size:11px;color:#9E9587;letter-spacing:1.2px;text-transform:uppercase;margin:14px 0 7px}
       .add-opt-btn{background:none;border:1px dashed #D4CEC5;border-radius:8px;color:#9E9587;font-size:12px;padding:8px;width:100%;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
       .approval-note{background:#FEF9ED;border:1px solid #F5E4A0;border-radius:8px;padding:10px 14px;font-size:12px;color:#8A6F20;margin-top:14px;line-height:1.5}
@@ -621,26 +634,27 @@ useEffect(() => {
       .success-title{font-family:'Fraunces',serif;font-weight:700;font-size:18px;color:#1A1814;margin-bottom:6px}
       .success-sub{font-size:13px;color:#6B6358;line-height:1.6}
       .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1814;color:#F5F2ED;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:11px 20px;border-radius:10px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
-      .site-footer{text-align:center;padding:32px 24px 24px;border-top:1px solid #E8E3DC;margin-top:8px}
-      .site-footer-copy{font-size:12px;color:#9E9587;margin-bottom:8px;font-family:'IBM Plex Sans',sans-serif}
-      .site-footer-links{display:flex;gap:16px;justify-content:center;align-items:center}
-      .site-footer-link{font-size:12px;color:#6B6358;text-decoration:none}
-      .site-footer-link:hover{color:#1A1814}
+.site-footer{text-align:center;padding:32px 24px 24px;border-top:3px solid #E8845A;margin-top:8px}
+.site-footer-copy{font-size:12px;color:#9E9587;margin-bottom:8px;font-family:'Inter',sans-serif}
+.site-footer-links{display:flex;gap:16px;justify-content:center;align-items:center}
+.site-footer-link{font-size:12px;color:#7B5EA7;text-decoration:none;font-weight:600}
+.site-footer-link:hover{color:#E8845A}
     `}</style>
 
     <div>
-      {/* Ticker */}
-      <div className="ticker">
-        <div className="ticker-track">
-          <span className="ticker-text">{MARQUEE}</span>
-          <span className="ticker-text">{MARQUEE}</span>
-        </div>
-      </div>
+{/* Ticker */}
+<div className="ticker">
+  <div className="ticker-track">
+    {[...TICKER_SEGS, ...TICKER_SEGS].map((seg:any, i:number) => (
+      <span key={i} className="ticker-seg" style={{background:seg.bg, color:seg.color}}>{seg.text}</span>
+    ))}
+  </div>
+</div>
 
       {/* Header */}
       <header className="hdr">
         <div className="hdr-inner">
-          <span className="brand-name">The Lounge</span>
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'52px',width:'auto',flexShrink:0}}/></a>
           <div className="search-wrap">
             <span className="search-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -662,7 +676,7 @@ useEffect(() => {
   }}>
     🔔
     {notifications.filter(n => !n.is_read).length > 0 && (
-      <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#E8845A', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {notifications.filter(n => !n.is_read).length}
       </span>
     )}
@@ -685,7 +699,7 @@ useEffect(() => {
 
             <a href="/suggestion-box" className="btn-icon" style={{textDecoration:'none'}}>📮 Suggestion Box</a>
             {userEmail === 'hello@theloungecommunity.co.uk' && (
-  <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#e8602c', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
+  <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#E8845A', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
     ← Admin
   </a>
 )}
