@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
-const supabase = createClient(
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
@@ -11,12 +11,11 @@ const supabase = createClient(
 const AVATARS = ['📋','🗂','📌','☕','🖨','📎','📁','✉️','🗓','💼']
 
 export default function SignupPage() {
-  const [form, setForm]     = useState({ email:'', password:'', username:'', location:'', avatar_emoji:'📋' })
-  const [error, setError]   = useState<string|null>(null)
+  const [form, setForm] = useState({ email:'', password:'', username:'', location:'', avatar_emoji:'📋' })
+  const [error, setError] = useState<string|null>(null)
   const [loading, setLoading] = useState(false)
-  const [done, setDone]     = useState(false)
+  const [done, setDone] = useState(false)
 
-  // Check for invite token
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const invite = params?.get('invite')
   const validInvite = invite === 'theloungeaccessest26'
@@ -25,60 +24,53 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
-        data: {
-          username: form.username,
-          avatar_emoji: form.avatar_emoji,
-          location: form.location,
-        },
+        data: { username: form.username, avatar_emoji: form.avatar_emoji, location: form.location },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     setDone(true)
   }
 
-  // No invite token — show waitlist
   if (!validInvite) {
     return (
       <main style={s.page}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:52,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.card}>
+          <div style={s.accentBar}/>
           <div style={{fontSize:40,marginBottom:16}}>🔒</div>
           <h1 style={s.h1}>The Lounge is invite-only</h1>
           <p style={{fontSize:13,color:'#6B6358',lineHeight:1.6,marginBottom:20}}>
-            You need an invite link to join. If someone referred you, ask them to share their invite link with you.
+            You need an invite link to join. If someone referred you, ask them to share their invite link.
           </p>
-          <p style={{fontSize:12,color:'#9E9587'}}>Already have an account? <a href="/auth/login" style={{color:'#1A1814',fontWeight:600}}>Log in</a></p>
+          <p style={{fontSize:12,color:'#9E9587'}}>Already have an account? <a href="/auth/login" style={{color:'#E8845A',fontWeight:700}}>Log in</a></p>
         </div>
       </main>
     )
   }
 
-  // Success — pending approval
   if (done) {
     return (
       <main style={s.page}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:52,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.card}>
+          <div style={s.accentBar}/>
           <div style={{fontSize:40,marginBottom:16}}>🎉</div>
           <h1 style={s.h1}>You're on the list!</h1>
           <p style={{fontSize:13,color:'#6B6358',lineHeight:1.7,marginBottom:8}}>
             Thanks for joining The Lounge, <strong>{form.username}</strong>!
           </p>
           <p style={{fontSize:13,color:'#6B6358',lineHeight:1.7}}>
-            Your account is being reviewed. We'll email you at <strong>{form.email}</strong> once you're approved — usually within 24 hours.
+            Your account is being reviewed. We'll email you at <strong>{form.email}</strong> once approved — usually within 24 hours.
           </p>
-          <div style={{background:'#FFFBF5',border:'1px solid #E8E3DC',borderRadius:10,padding:'14px 16px',marginTop:20,fontSize:12,color:'#6B6358',lineHeight:1.6}}>
-            💙 While you wait — we're a community for administrative and executive support professionals professionals to share, vent, and support each other. Your people. Your space. No judgement..
+          <div style={{background:'#FFF8F5',border:'2px solid #E8845A',borderRadius:12,padding:'14px 16px',marginTop:20,fontSize:12,color:'#6B6358',lineHeight:1.6}}>
+            💙 We're a community for administrative and executive support professionals to share, vent, and support each other. Your people. Your space. No judgement.
           </div>
         </div>
       </main>
@@ -87,8 +79,10 @@ export default function SignupPage() {
 
   return (
     <main style={s.page}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+      <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:52,width:'auto',marginBottom:28,display:'block'}}/></a>
       <div style={s.card}>
-        <a href="/" style={{fontSize:12,color:'#9E9587',textDecoration:'none',display:'block',marginBottom:20}}>← Back to The Lounge</a>
+        <div style={s.accentBar}/>
         <h1 style={s.h1}>Join The Lounge</h1>
         <p style={{fontSize:13,color:'#6B6358',marginBottom:24,lineHeight:1.6}}>
           A closed space for the ones who keep it all running.
@@ -99,7 +93,7 @@ export default function SignupPage() {
           <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
             {AVATARS.map(a=>(
               <button key={a} type="button"
-                style={{width:38,height:38,borderRadius:9,background:'#F0EDE8',border:form.avatar_emoji===a?'2px solid #1A1814':'2px solid transparent',fontSize:18,cursor:'pointer'}}
+                style={{width:38,height:38,borderRadius:10,background:'#F5F0E8',border:form.avatar_emoji===a?'2.5px solid #E8845A':'2px solid transparent',fontSize:18,cursor:'pointer'}}
                 onClick={()=>setForm(f=>({...f,avatar_emoji:a}))}>{a}
               </button>
             ))}
@@ -121,22 +115,22 @@ export default function SignupPage() {
           <input style={s.input} type="password" placeholder="At least 8 characters" required minLength={8}
             value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))}/>
 
-          {error && <p style={{color:'#F4622A',fontSize:13,marginTop:10}}>{error}</p>}
+          {error && <p style={{color:'#FF4D4D',fontSize:13,marginTop:10,padding:'8px 12px',background:'#FFE8E8',borderRadius:8,border:'1px solid #FF4D4D'}}>{error}</p>}
 
-          <button style={{marginTop:20,width:'100%',background:'#1A1814',color:'#F5F2ED',border:'none',borderRadius:9,padding:'11px 0',fontSize:14,fontWeight:600,cursor:'pointer',opacity:loading?0.6:1}} type="submit" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
+          <button style={{marginTop:20,width:'100%',background:'#E8845A',color:'#fff',border:'none',borderRadius:100,padding:'12px 0',fontSize:14,fontWeight:700,cursor:'pointer',opacity:loading?0.6:1,fontFamily:"'Syne',sans-serif"}} type="submit" disabled={loading}>
+            {loading ? 'Creating account…' : 'Create account →'}
           </button>
 
           <p style={{fontSize:11,color:'#9E9587',textAlign:'center',marginTop:12,lineHeight:1.6}}>
             By creating an account you agree to our{' '}
-            <a href="/terms" style={{color:'#0EAD8B',textDecoration:'none'}}>Terms of Use</a>
+            <a href="/terms" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Terms of Use</a>
             {' '}and{' '}
-            <a href="/privacy" style={{color:'#0EAD8B',textDecoration:'none'}}>Privacy Policy</a>
+            <a href="/privacy" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Privacy Policy</a>
           </p>
         </form>
 
         <p style={{marginTop:16,fontSize:13,color:'#9E9587',textAlign:'center'}}>
-          Already have an account? <a href="/auth/login" style={{color:'#1A1814',fontWeight:600}}>Log in</a>
+          Already have an account? <a href="/auth/login" style={{color:'#E8845A',fontWeight:700}}>Log in</a>
         </p>
       </div>
     </main>
@@ -144,9 +138,10 @@ export default function SignupPage() {
 }
 
 const s: Record<string,React.CSSProperties> = {
-  page:  { minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#F5F2ED', padding:24, fontFamily:"'IBM Plex Sans',sans-serif" },
-  card:  { background:'#fff', border:'1px solid #E8E3DC', borderRadius:18, padding:36, width:'100%', maxWidth:440, boxShadow:'0 8px 40px rgba(0,0,0,0.07)' },
-  h1:    { fontFamily:"Georgia,serif", fontWeight:700, fontSize:22, color:'#1A1814', marginBottom:6 },
-  label: { display:'block', fontSize:11, color:'#9E9587', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:6, marginTop:14 },
-  input: { width:'100%', background:'#FAFAF8', border:'1px solid #E2DDD6', borderRadius:9, padding:'10px 13px', fontSize:14, color:'#1A1814', outline:'none', boxSizing:'border-box' as const },
+  page:     { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#F5F0E8', padding:24, fontFamily:"'Inter',sans-serif" },
+  card:     { background:'#fff', border:'2.5px solid #E8845A', borderRadius:20, padding:36, width:'100%', maxWidth:440, boxShadow:'4px 4px 0 #E8845A' },
+  accentBar:{ height:5, background:'#E8845A', borderRadius:'16px 16px 0 0', margin:'-36px -36px 28px' },
+  h1:       { fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:22, color:'#E8845A', marginBottom:6, letterSpacing:'-0.03em' },
+  label:    { display:'block', fontSize:11, color:'#7B5EA7', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:6, marginTop:14, fontWeight:600 },
+  input:    { width:'100%', background:'#FAFAF8', border:'2px solid #E8845A', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const },
 }
