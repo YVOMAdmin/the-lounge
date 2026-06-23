@@ -447,8 +447,10 @@ useEffect(() => {
 .ticker-track{display:inline-flex;animation:ticker 32s linear infinite;align-items:stretch}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
-.hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 16px}
-.hdr-inner{display:flex;align-items:center;height:90px;gap:12px}
+.hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:12px 16px}
+.hdr-inner{display:flex;flex-direction:column;gap:12px}
+.hdr-row1{display:flex;align-items:center;justify-content:center}
+.hdr-row2{display:flex;align-items:center;gap:12px}
 .brand-name{display:none}
       .search-wrap{flex:1;max-width:280px;position:relative}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
@@ -654,7 +656,10 @@ useEffect(() => {
       {/* Header */}
       <header className="hdr">
         <div className="hdr-inner">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'85px',width:'auto',flexShrink:0}}/></a>
+        <div className="hdr-row1">
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'75px',width:'auto',flexShrink:0}}/></a>
+        </div>
+        <div className="hdr-row2">
           <div className="search-wrap">
             <span className="search-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -707,6 +712,7 @@ useEffect(() => {
             <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
             <button className="btn-icon" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
           </div>
+        </div>
         </div>
       </header>
 
