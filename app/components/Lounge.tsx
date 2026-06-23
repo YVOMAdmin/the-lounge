@@ -484,11 +484,14 @@ useEffect(() => {
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px}
-.hdr-row1{display:flex;align-items:center;width:100%;gap:8px;flex-wrap:wrap;padding:4px 0}
-.hdr-row2{display:flex;align-items:center;justify-content:center;padding:2px 0}
+.hdr-row1{display:flex;align-items:center;width:100%;gap:6px;flex-wrap:wrap;padding:4px 0}
+.hdr-row2{display:flex;align-items:center;justify-content:center;line-height:0;padding:0;margin:0}
 .hdr-row3{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:4px 0}
 .brand-name{display:none}
-      .search-wrap{flex:1;width:100%;position:relative}
+      .search-wrap{flex:1;max-width:none;position:relative}
+      .btn-icon-sm{background:transparent;color:#E8845A;border:1.5px solid #E8845A;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+      .btn-icon-sm:hover{background:#E8845A;color:#fff}
+      .btn-icon-sm-solid{background:#E8845A;color:#fff;border:1.5px solid #E8845A;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:background 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
       .search-input:focus{background:#fff;border-color:#B8B0A4}
       .search-input::placeholder{color:#B8B0A4}
@@ -698,7 +701,7 @@ useEffect(() => {
             {search&&<button className="search-clear" onClick={()=>setSearch("")}>✕</button>}
           </div>
           <div style={{ position: 'relative' }}>
-  <button className="btn-icon" onClick={() => {
+  <button className="btn-icon-sm" onClick={() => {
     setShowNotifications(!showNotifications)
     if (!showNotifications) {
       fetch('/api/notifications', {
@@ -731,11 +734,11 @@ useEffect(() => {
   )}
 </div>
           {userEmail === 'hello@theloungecommunity.co.uk' && (
-  <a href="/admin" className="btn-icon-solid" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+  <a href="/admin" className="btn-icon-sm-solid" style={{ textDecoration: 'none' }}>
     ← Admin
   </a>
 )}
-          <button className="btn-icon" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
+          <button className="btn-icon-sm" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
         </div>
         <div className="hdr-row2">
 <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
@@ -756,7 +759,6 @@ useEffect(() => {
               <button className={`tab ${activeTab==="feed"?"on":""}`} onClick={()=>setActiveTab("feed")}>💬 Feed</button>
               <button className={`tab ${activeTab==="events"?"on":""}`} onClick={()=>setActiveTab("events")}>📅 Events</button>
               <button className={`tab ${activeTab==="resources"?"on":""}`} onClick={()=>setActiveTab("resources")}>📌 Resources</button>
-              <button className={`tab ${activeTab==="suggestions"?"on":""}`} onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
               <button className={`tab ${activeTab==="jobs"?"on":""}`} onClick={()=>setActiveTab("jobs")}>💼 Job Board</button>
             </div>
 
