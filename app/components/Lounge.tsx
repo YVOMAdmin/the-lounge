@@ -448,8 +448,8 @@ useEffect(() => {
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
-.hdr-inner{display:flex;flex-direction:column;gap:4px;padding:4px 0}
-.hdr-row1{display:flex;align-items:center;justify-content:center;padding:6px 0;height:auto}
+.hdr-inner{display:flex;flex-direction:column;gap:4px}
+.hdr-row1{display:flex;align-items:center;justify-content:center;padding:4px 0}
 .hdr-row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap;overflow-x:auto}
 .brand-name{display:none}
       .search-wrap{flex:1;max-width:280px;position:relative}
@@ -471,7 +471,7 @@ useEffect(() => {
       .feed{flex:1;min-width:0}
       .rail{width:236px;flex-shrink:0}
       @media(max-width:680px){.rail{display:none}}
-.tabs{display:flex;gap:6px;margin-bottom:20px;padding:0}
+.tabs{display:flex;gap:6px;margin-bottom:20px;padding:0;flex-wrap:wrap}
 .tab{flex:1;padding:10px;border:2.5px solid #E8845A;background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#E8845A;border-radius:100px;cursor:pointer;transition:all 0.15s;text-align:center}
 .tab.on{background:#E8845A;color:#fff;border-color:#E8845A}
       .filters{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
@@ -702,7 +702,6 @@ useEffect(() => {
   )}
 </div>
 
-            <a href="/suggestion-box" className="btn-icon" style={{textDecoration:'none'}}>📮 Suggestion Box</a>
             {userEmail === 'hello@theloungecommunity.co.uk' && (
   <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#E8845A', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
     ← Admin
@@ -724,6 +723,8 @@ useEffect(() => {
               <button className={`tab ${activeTab==="feed"?"on":""}`} onClick={()=>setActiveTab("feed")}>💬 Feed</button>
               <button className={`tab ${activeTab==="events"?"on":""}`} onClick={()=>setActiveTab("events")}>📅 Events</button>
               <button className={`tab ${activeTab==="resources"?"on":""}`} onClick={()=>setActiveTab("resources")}>📌 Resources</button>
+              <a href="/suggestion-box" className="tab" style={{textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>📮 Suggestion Box</a>
+              <button className={`tab ${activeTab==="jobs"?"on":""}`} onClick={()=>setActiveTab("jobs")}>💼 Job Board</button>
             </div>
 
             {/* ── FEED ── */}
@@ -865,6 +866,13 @@ useEffect(() => {
                   <div className="resource-arrow">→</div>
                 </div>
               ))}
+            </div>}
+
+            {/* ── JOB BOARD ── */}
+            {activeTab==="jobs"&&<div className="no-results">
+              <div className="no-results-emoji">💼</div>
+              <div className="no-results-title">Job Board coming soon</div>
+              <div className="no-results-sub">We're building a space to share admin & EA opportunities. Watch this space!</div>
             </div>}
           </div>
 
