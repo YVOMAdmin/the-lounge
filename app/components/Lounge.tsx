@@ -657,7 +657,7 @@ useEffect(() => {
       <header className="hdr">
         <div className="hdr-inner">
         <div className="hdr-row1">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'75px',width:'auto',flexShrink:0}}/></a>
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0}}/></a>
         </div>
         <div className="hdr-row2">
           <div className="search-wrap">

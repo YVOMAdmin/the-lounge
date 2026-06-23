@@ -40,7 +40,7 @@ export default function SignupPage() {
     return (
       <main style={s.page}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
-        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:75,width:'auto',marginBottom:28,display:'block'}}/></a>
+        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.card}>
           <div style={s.accentBar}/>
           <div style={{fontSize:40,marginBottom:16}}>🔒</div>
@@ -58,7 +58,7 @@ export default function SignupPage() {
     return (
       <main style={s.page}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
-        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:75,width:'auto',marginBottom:28,display:'block'}}/></a>
+        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.card}>
           <div style={s.accentBar}/>
           <div style={{fontSize:40,marginBottom:16}}>🎉</div>
@@ -80,7 +80,7 @@ export default function SignupPage() {
   return (
     <main style={s.page}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
-      <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:75,width:'auto',marginBottom:28,display:'block'}}/></a>
+      <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
       <div style={s.card}>
         <div style={s.accentBar}/>
         <h1 style={s.h1}>Join The Lounge</h1>

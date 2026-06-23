@@ -31,7 +31,7 @@ export default function LoginPage() {
       
       {/* Logo */}
       <a href="/" style={{marginBottom:28,display:'block'}}>
-        <img src="/community-logo.png" alt="The Lounge Community" style={{height:75,width:'auto'}}/>
+        <img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto'}}/>
       </a>
 
       <div style={{background:'#fff',border:'2.5px solid #E8845A',borderRadius:20,padding:36,width:'100%',maxWidth:400,boxShadow:'4px 4px 0 #E8845A'}}>
