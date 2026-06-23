@@ -497,10 +497,12 @@ useEffect(() => {
       .search-input::placeholder{color:#B8B0A4}
       .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#B8B0A4;pointer-events:none}
       .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#B8B0A4;cursor:pointer;font-size:14px}
-.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
+.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon:hover{background:#E8845A;color:#fff}
-.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
+.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon-solid:hover{background:#d4724a}
+.btn-row3{background:#FFB3C6;color:#1A1208;border:2px solid #FFB3C6;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
+.btn-row3:hover{background:#ff99b5;border-color:#ff99b5}
       .btn-host{background:transparent;border:1px solid;border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
       .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
       .layout{display:flex;gap:28px}
@@ -744,9 +746,9 @@ useEffect(() => {
 <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
         </div>
         <div className="hdr-row3">
-          <button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
-          <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
-          <button className="btn-icon" onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
+          <button className="btn-row3" onClick={()=>setComposePoll(true)}>+ Poll</button>
+          <button className="btn-row3" onClick={()=>setCompose(true)}>+ Post</button>
+          <button className="btn-row3" onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
         </div>
         </div>
       </header>
