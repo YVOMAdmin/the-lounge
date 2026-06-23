@@ -173,6 +173,16 @@ export default function Lounge() {
 const [userEmail, setUserEmail] = useState<string | null>(null)
 const [notifications, setNotifications] = useState<any[]>([])
 const [showNotifications, setShowNotifications] = useState(false)
+const SUGGESTION_TYPES = [
+  { id: 'feedback', label: 'Feedback', emoji: '💬' },
+  { id: 'suggestion', label: 'Suggestion', emoji: '💡' },
+  { id: 'idea', label: 'Idea', emoji: '✨' },
+]
+const [suggestionType, setSuggestionType] = useState('suggestion')
+const [suggestionMessage, setSuggestionMessage] = useState('')
+const [suggestionSubmitted, setSuggestionSubmitted] = useState(false)
+const [suggestionLoading, setSuggestionLoading] = useState(false)
+const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
 
 
   const feed = useMemo(()=>{
@@ -233,6 +243,20 @@ const [showNotifications, setShowNotifications] = useState(false)
     setEvents((prev:any)=>prev.map((e:any)=>e.id===eventId?{...e,attendees:was?e.attendees.filter((a:string)=>a!==myName):[...e.attendees,myName]}:e));
     showToast(was?"RSVP cancelled":"You're going! ✓");
   };
+  const submitSuggestion = async () => {
+    if (!suggestionMessage.trim()) return;
+    setSuggestionLoading(true);
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = '/auth/login'; return; }
+    await supabase.from('suggestions').insert({ type: suggestionType, message: suggestionMessage });
+    await fetch('/api/suggestion-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: suggestionType, message: suggestionMessage }),
+    });
+    setSuggestionSubmitted(true);
+    setSuggestionLoading(false);
+  };
   const submitEvent = async () => {
   if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return;
 const { data: { session } } = await supabase.auth.getSession()
@@ -288,6 +312,17 @@ window.location.href = '/auth/pending'
 }
 
   checkApproval()
+}, [])
+useEffect(() => {
+  async function loadSuggestions() {
+    const { data } = await supabase
+      .from('suggestions')
+      .select('*')
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false })
+    if (data) setApprovedSuggestions(data)
+  }
+  loadSuggestions()
 }, [])
 useEffect(() => {
   async function loadEvents() {
@@ -703,7 +738,7 @@ useEffect(() => {
 </div>
 
             {userEmail === 'hello@theloungecommunity.co.uk' && (
-  <a href="/admin" style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#E8845A', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
+  <a href="/admin" className="btn-icon-solid" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
     ← Admin
   </a>
 )}
@@ -723,7 +758,7 @@ useEffect(() => {
               <button className={`tab ${activeTab==="feed"?"on":""}`} onClick={()=>setActiveTab("feed")}>💬 Feed</button>
               <button className={`tab ${activeTab==="events"?"on":""}`} onClick={()=>setActiveTab("events")}>📅 Events</button>
               <button className={`tab ${activeTab==="resources"?"on":""}`} onClick={()=>setActiveTab("resources")}>📌 Resources</button>
-              <a href="/suggestion-box" className="tab" style={{textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>📮 Suggestion Box</a>
+              <button className={`tab ${activeTab==="suggestions"?"on":""}`} onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
               <button className={`tab ${activeTab==="jobs"?"on":""}`} onClick={()=>setActiveTab("jobs")}>💼 Job Board</button>
             </div>
 
@@ -866,6 +901,50 @@ useEffect(() => {
                   <div className="resource-arrow">→</div>
                 </div>
               ))}
+            </div>}
+
+            {/* ── SUGGESTION BOX ── */}
+            {activeTab==="suggestions"&&<div>
+              <div className="resources-head">The Suggestion Box</div>
+              <div className="resources-sub">Got an idea, feedback, or something you'd love to see in The Lounge? Drop it in. We read every single one.</div>
+              {suggestionSubmitted?(
+                <div className="success-banner" style={{background:"#fff",border:"1px solid #E8E3DC",borderRadius:14,marginBottom:20}}>
+                  <div className="success-emoji">🎉</div>
+                  <div className="success-title">Thank you!</div>
+                  <div className="success-sub">Your suggestion has been received. We will review it and may feature it below.</div>
+                  <div className="modal-foot" style={{justifyContent:"center",marginTop:20}}>
+                    <button className="btn-submit" onClick={()=>{setSuggestionSubmitted(false);setSuggestionMessage("");setSuggestionType("suggestion");}}>Submit another</button>
+                  </div>
+                </div>
+              ):(
+                <div className="resource-card" style={{flexDirection:"column",alignItems:"stretch",cursor:"default"}}>
+                  <div className="section-label" style={{marginTop:0}}>What is this?</div>
+                  <div className="cats" style={{marginBottom:12}}>
+                    {SUGGESTION_TYPES.map((t:any)=>(
+                      <button key={t.id} className={`cat-opt ${suggestionType===t.id?"sel":""}`} onClick={()=>setSuggestionType(t.id)}>{t.emoji} {t.label}</button>
+                    ))}
+                  </div>
+                  <div className="section-label">Your message</div>
+                  <textarea placeholder="Tell us what is on your mind..." value={suggestionMessage} onChange={(e:any)=>setSuggestionMessage(e.target.value)}/>
+                  <div className="modal-foot" style={{justifyContent:"flex-end"}}>
+                    <button className="btn-submit" onClick={submitSuggestion} disabled={!suggestionMessage.trim()||suggestionLoading}>{suggestionLoading?"Dropping it in...":"Drop it in the box"}</button>
+                  </div>
+                </div>
+              )}
+              {approvedSuggestions.length>0&&(
+                <div style={{marginTop:24}}>
+                  <div className="resources-head" style={{fontSize:17}}>From the community</div>
+                  <div className="resources-sub">Suggestions and ideas we have heard from members.</div>
+                  {approvedSuggestions.map((s:any)=>(
+                    <div key={s.id} className="resource-card" style={{cursor:"default"}}>
+                      <div>
+                        <span className="cat-badge" style={{background:"#FEF0EB",color:"#E8845A",border:"1px solid #FACDB8",marginBottom:8}}>{SUGGESTION_TYPES.find((t:any)=>t.id===s.type)?.emoji} {s.type}</span>
+                        <div className="card-body" style={{marginTop:8}}>{s.message}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>}
 
             {/* ── JOB BOARD ── */}
