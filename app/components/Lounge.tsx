@@ -447,8 +447,8 @@ useEffect(() => {
 .ticker-track{display:inline-flex;animation:ticker 32s linear infinite;align-items:stretch}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
-.hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:12px 16px}
-.hdr-inner{display:flex;flex-direction:column;gap:12px}
+.hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
+.hdr-inner{display:flex;flex-direction:column;gap:4px;padding:4px 0}
 .hdr-row1{display:flex;align-items:center;justify-content:center}
 .hdr-row2{display:flex;align-items:center;gap:12px}
 .brand-name{display:none}
@@ -657,7 +657,7 @@ useEffect(() => {
       <header className="hdr">
         <div className="hdr-inner">
         <div className="hdr-row1">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0}}/></a>
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
         </div>
         <div className="hdr-row2">
           <div className="search-wrap">
