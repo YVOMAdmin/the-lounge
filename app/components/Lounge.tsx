@@ -485,7 +485,7 @@ useEffect(() => {
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #F9C4A0;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px}
 .hdr-row1{display:flex;align-items:center;width:100%;gap:6px;flex-wrap:wrap;padding:4px 0}
-.hdr-row2{display:flex;justify-content:center;align-items:center;padding:0;margin:0;line-height:0}
+.hdr-row2{display:flex;justify-content:center;align-items:center;padding:0;margin:0;line-height:0;font-size:0}
 .hdr-row3{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:4px 0}
 .brand-name{display:none}
       .search-wrap{flex:1;max-width:none;position:relative}
@@ -743,7 +743,7 @@ useEffect(() => {
           <button className="btn-icon-sm" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
         </div>
         <div className="hdr-row2">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
+<a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
         </div>
         <div className="hdr-row3">
           <button className="btn-row3" onClick={()=>setComposePoll(true)}>+ Poll</button>
