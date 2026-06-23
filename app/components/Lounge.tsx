@@ -743,7 +743,7 @@ useEffect(() => {
           <button className="btn-icon-sm" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
         </div>
         <div className="hdr-row2">
-<a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
+<a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
         </div>
         <div className="hdr-row3">
           <button className="btn-row3" onClick={()=>setComposePoll(true)}>+ Poll</button>
