@@ -484,21 +484,20 @@ useEffect(() => {
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px}
-.hdr-row1{display:flex;align-items:center;justify-content:center;padding:4px 0}
-.hdr-row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap;overflow-x:auto}
+.hdr-row1{display:flex;align-items:center;width:100%;padding:4px 0}
+.hdr-row2{display:flex;align-items:center;justify-content:center;padding:4px 0}
+.hdr-row3{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:4px 0}
 .brand-name{display:none}
-      .search-wrap{flex:1;max-width:280px;position:relative}
+      .search-wrap{flex:1;width:100%;position:relative}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
       .search-input:focus{background:#fff;border-color:#B8B0A4}
       .search-input::placeholder{color:#B8B0A4}
       .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#B8B0A4;pointer-events:none}
       .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#B8B0A4;cursor:pointer;font-size:14px}
-.hdr-actions{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end;min-width:0}
-.hdr-actions::-webkit-scrollbar{display:none}
-.hdr-actions>*{flex-shrink:0}
-.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s}
+.hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon:hover{background:#E8845A;color:#fff}
-.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s}
+.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon-solid:hover{background:#d4724a}
       .btn-host{background:transparent;border:1px solid;border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
       .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
@@ -692,9 +691,6 @@ useEffect(() => {
       <header className="hdr">
         <div className="hdr-inner">
         <div className="hdr-row1">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
-        </div>
-        <div className="hdr-row2">
           <div className="search-wrap">
             <span className="search-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -702,6 +698,11 @@ useEffect(() => {
             <input className="search-input" placeholder="Search posts, names..." value={search} onChange={(e:any)=>setSearch(e.target.value)}/>
             {search&&<button className="search-clear" onClick={()=>setSearch("")}>✕</button>}
           </div>
+        </div>
+        <div className="hdr-row2">
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
+        </div>
+        <div className="hdr-row3">
           <div className="hdr-actions">
             <div style={{ position: 'relative' }}>
   <button className="btn-icon" onClick={() => {
