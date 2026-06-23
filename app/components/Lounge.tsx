@@ -484,8 +484,8 @@ useEffect(() => {
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px}
-.hdr-row1{display:flex;align-items:center;width:100%;padding:4px 0}
-.hdr-row2{display:flex;align-items:center;justify-content:center;padding:4px 0}
+.hdr-row1{display:flex;align-items:center;width:100%;gap:8px;flex-wrap:wrap;padding:4px 0}
+.hdr-row2{display:flex;align-items:center;justify-content:center;padding:2px 0}
 .hdr-row3{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:4px 0}
 .brand-name{display:none}
       .search-wrap{flex:1;width:100%;position:relative}
@@ -494,7 +494,6 @@ useEffect(() => {
       .search-input::placeholder{color:#B8B0A4}
       .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#B8B0A4;pointer-events:none}
       .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#B8B0A4;cursor:pointer;font-size:14px}
-.hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 .btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon:hover{background:#E8845A;color:#fff}
 .btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
@@ -698,13 +697,7 @@ useEffect(() => {
             <input className="search-input" placeholder="Search posts, names..." value={search} onChange={(e:any)=>setSearch(e.target.value)}/>
             {search&&<button className="search-clear" onClick={()=>setSearch("")}>✕</button>}
           </div>
-        </div>
-        <div className="hdr-row2">
-<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
-        </div>
-        <div className="hdr-row3">
-          <div className="hdr-actions">
-            <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }}>
   <button className="btn-icon" onClick={() => {
     setShowNotifications(!showNotifications)
     if (!showNotifications) {
@@ -737,16 +730,20 @@ useEffect(() => {
     </div>
   )}
 </div>
-
-            {userEmail === 'hello@theloungecommunity.co.uk' && (
+          {userEmail === 'hello@theloungecommunity.co.uk' && (
   <a href="/admin" className="btn-icon-solid" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
     ← Admin
   </a>
 )}
-<button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
-            <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
-            <button className="btn-icon" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
-          </div>
+          <button className="btn-icon" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
+        </div>
+        <div className="hdr-row2">
+<a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:'150px',width:'auto',flexShrink:0}}/></a>
+        </div>
+        <div className="hdr-row3">
+          <button className="btn-icon" onClick={()=>setComposePoll(true)}>+ Poll</button>
+          <button className="btn-icon-solid" onClick={()=>setCompose(true)}>+ Post</button>
+          <button className="btn-icon" onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
         </div>
         </div>
       </header>
