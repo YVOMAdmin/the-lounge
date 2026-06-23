@@ -449,8 +449,8 @@ useEffect(() => {
 .ticker-seg{display:flex;align-items:center;padding:0 24px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;white-space:nowrap;height:34px}
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px;padding:4px 0}
-.hdr-row1{display:flex;align-items:center;justify-content:center}
-.hdr-row2{display:flex;align-items:center;gap:12px}
+.hdr-row1{display:flex;align-items:center;justify-content:center;padding:6px 0;height:auto}
+.hdr-row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap;overflow-x:auto}
 .brand-name{display:none}
       .search-wrap{flex:1;max-width:280px;position:relative}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
