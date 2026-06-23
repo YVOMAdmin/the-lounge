@@ -485,7 +485,7 @@ useEffect(() => {
 .hdr{position:sticky;top:0;z-index:50;background:#F5F0E8;border-bottom:3px solid #E8845A;padding:0 12px}
 .hdr-inner{display:flex;flex-direction:column;gap:4px}
 .hdr-row1{display:flex;align-items:center;width:100%;gap:6px;flex-wrap:wrap;padding:4px 0}
-.hdr-row2{display:flex;align-items:center;justify-content:center;line-height:0;padding:0;margin:0}
+.hdr-row2{display:flex;justify-content:center;align-items:center;padding:0;margin:0;line-height:0}
 .hdr-row3{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:4px 0}
 .brand-name{display:none}
       .search-wrap{flex:1;max-width:none;position:relative}
@@ -497,9 +497,9 @@ useEffect(() => {
       .search-input::placeholder{color:#B8B0A4}
       .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#B8B0A4;pointer-events:none}
       .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#B8B0A4;cursor:pointer;font-size:14px}
-.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
+.btn-icon{background:transparent;color:#E8845A;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon:hover{background:#E8845A;color:#fff}
-.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:84px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
+.btn-icon-solid{background:#E8845A;color:#fff;border:2px solid #E8845A;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-icon-solid:hover{background:#d4724a}
       .btn-host{background:transparent;border:1px solid;border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
       .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
