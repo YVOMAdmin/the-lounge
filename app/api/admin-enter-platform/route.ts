@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-import { cookies, headers } from 'next/headers'
+import { NextResponse, type NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
   const adminAuth = cookieStore.get('admin_auth')
 
@@ -10,7 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const origin = (await headers()).get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
+  // The browser doesn't send an Origin header on a plain top-level GET
+  // navigation, so derive it from the request URL instead — matches how
+  // /auth/callback resolves its own origin.
+  const { origin } = new URL(request.url)
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,7 +23,7 @@ export async function GET() {
   const { data, error } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email: 'hello@theloungecommunity.co.uk',
-    options: { redirectTo: `${origin}/community` },
+    options: { redirectTo: `${origin}/auth/callback?next=/community` },
   })
 
   if (error || !data?.properties?.action_link) {
