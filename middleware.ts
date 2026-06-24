@@ -1,7 +1,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_PATHS = ['/', '/privacy', '/terms']
+const STATIC_FILE = /\.(png|jpe?g|gif|svg|webp|ico|css|js|map|txt|xml)$/i
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  if (PUBLIC_PATHS.includes(pathname) || STATIC_FILE.test(pathname)) {
+    return NextResponse.next()
+  }
+
   const response = NextResponse.next({ request })
 
   const supabase = createServerClient(
