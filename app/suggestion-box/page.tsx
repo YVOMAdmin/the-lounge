@@ -53,7 +53,7 @@ if (!session) { window.location.href = '/auth/login'; return; }
         <p style={{margin:0,fontSize:11,letterSpacing:2,color:'#fff',fontFamily:"Georgia,serif",fontStyle:'italic'}}>For the ones who keep it all running</p>
       </div>
       <div style={{maxWidth:640,margin:'0 auto',padding:'40px 24px'}}>
-        <a href="/" style={{fontSize:12,color:'#9E9587',textDecoration:'none'}}>Back to The Lounge</a>
+        <a href="/community" style={{fontSize:12,color:'#9E9587',textDecoration:'none'}}>Back to The Lounge</a>
         <div style={{marginTop:24,marginBottom:32}}>
           <h1 style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:32,color:'#1A1814',marginBottom:8}}>The Suggestion Box</h1>
           <p style={{fontSize:14,color:'#6B6358',lineHeight:1.7}}>Got an idea, feedback, or something you would love to see in The Lounge? Drop it in. We read every single one.</p>

@@ -23,10 +23,10 @@ export async function GET(request: Request) {
 
       if (!profile?.is_approved) {
         await supabase.auth.signOut()
-        return NextResponse.redirect(`${origin}/pending-approval`)
+        return NextResponse.redirect(`${origin}/auth/pending`)
       }
     }
   }
 
-  return NextResponse.redirect(`${origin}/`)
+  return NextResponse.redirect(`${origin}/community`)
 }
