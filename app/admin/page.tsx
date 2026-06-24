@@ -37,7 +37,7 @@ type Suggestion = {
   created_at: string
 }
 
-const ACCENT = '#E8845A'
+const ACCENT = '#F9C4A0'
 const PURPLE = '#7B5EA7'
 const GREEN = '#2DC653'
 const CREAM = '#F5F0E8'
@@ -221,12 +221,12 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <main style={s.loginPage}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
         <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:52,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.loginCard}>
           <div style={s.loginAccent} />
           <div style={s.loginBody}>
-            <h1 style={{...s.logo, marginBottom:'6px'}}>Admin Access</h1>
+            <h1 style={{...s.logo, fontFamily:"'Lilita One',cursive", fontWeight:400, fontSize:'24px', letterSpacing:'-0.01em', marginBottom:'6px'}}>Admin Access</h1>
             <p style={{margin:'0 0 24px',fontSize:'12px',color:'#8A8070'}}>The Lounge Community</p>
             {loginError && <p style={s.error}>{loginError}</p>}
             <input type="password" placeholder="Enter password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')handleLogin()}} style={s.input}/>
@@ -241,7 +241,7 @@ export default function AdminPage() {
   return (
     <main style={s.page}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .ticker-seg { display:flex; align-items:center; padding:0 24px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; white-space:nowrap; height:34px; }
         .ticker-track { display:inline-flex; animation:ticker 28s linear infinite; align-items:stretch; }

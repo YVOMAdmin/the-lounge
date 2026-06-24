@@ -16,10 +16,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
-  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-  const invite = params?.get('invite')
-  const validInvite = invite === 'theloungeaccessest26'
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -36,28 +32,10 @@ export default function SignupPage() {
     setDone(true)
   }
 
-  if (!validInvite) {
-    return (
-      <main style={s.page}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
-        <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
-        <div style={s.card}>
-          <div style={s.accentBar}/>
-          <div style={{fontSize:40,marginBottom:16}}>🔒</div>
-          <h1 style={s.h1}>The Lounge is invite-only</h1>
-          <p style={{fontSize:13,color:'#6B6358',lineHeight:1.6,marginBottom:20}}>
-            You need an invite link to join. If someone referred you, ask them to share their invite link.
-          </p>
-          <p style={{fontSize:12,color:'#9E9587'}}>Already have an account? <a href="/auth/login" style={{color:'#E8845A',fontWeight:700}}>Log in</a></p>
-        </div>
-      </main>
-    )
-  }
-
   if (done) {
     return (
       <main style={s.page}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
         <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
         <div style={s.card}>
           <div style={s.accentBar}/>
@@ -69,7 +47,7 @@ export default function SignupPage() {
           <p style={{fontSize:13,color:'#6B6358',lineHeight:1.7}}>
             Your account is being reviewed. We'll email you at <strong>{form.email}</strong> once approved — usually within 24 hours.
           </p>
-          <div style={{background:'#FFF8F5',border:'2px solid #E8845A',borderRadius:12,padding:'14px 16px',marginTop:20,fontSize:12,color:'#6B6358',lineHeight:1.6}}>
+          <div style={{background:'#FFF8F5',border:'2px solid #F9C4A0',borderRadius:12,padding:'14px 16px',marginTop:20,fontSize:12,color:'#6B6358',lineHeight:1.6}}>
             💙 We're a community for administrative and executive support professionals to share, vent, and support each other. Your people. Your space. No judgement.
           </div>
         </div>
@@ -79,7 +57,7 @@ export default function SignupPage() {
 
   return (
     <main style={s.page}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');`}</style>
       <a href="/"><img src="/community-logo.png" alt="The Lounge Community" style={{height:120,width:'auto',marginBottom:28,display:'block'}}/></a>
       <div style={s.card}>
         <div style={s.accentBar}/>
@@ -93,7 +71,7 @@ export default function SignupPage() {
           <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
             {AVATARS.map(a=>(
               <button key={a} type="button"
-                style={{width:38,height:38,borderRadius:10,background:'#F5F0E8',border:form.avatar_emoji===a?'2.5px solid #E8845A':'2px solid transparent',fontSize:18,cursor:'pointer'}}
+                style={{width:38,height:38,borderRadius:10,background:'#F5F0E8',border:form.avatar_emoji===a?'2.5px solid #F9C4A0':'2px solid transparent',fontSize:18,cursor:'pointer'}}
                 onClick={()=>setForm(f=>({...f,avatar_emoji:a}))}>{a}
               </button>
             ))}
@@ -117,7 +95,7 @@ export default function SignupPage() {
 
           {error && <p style={{color:'#FF4D4D',fontSize:13,marginTop:10,padding:'8px 12px',background:'#FFE8E8',borderRadius:8,border:'1px solid #FF4D4D'}}>{error}</p>}
 
-          <button style={{marginTop:20,width:'100%',background:'#E8845A',color:'#fff',border:'none',borderRadius:100,padding:'12px 0',fontSize:14,fontWeight:700,cursor:'pointer',opacity:loading?0.6:1,fontFamily:"'Syne',sans-serif"}} type="submit" disabled={loading}>
+          <button style={{marginTop:20,width:'100%',background:'#F9C4A0',color:'#fff',border:'none',borderRadius:100,padding:'12px 0',fontSize:14,fontWeight:700,cursor:'pointer',opacity:loading?0.6:1,fontFamily:"'Syne',sans-serif"}} type="submit" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account →'}
           </button>
 
@@ -130,7 +108,7 @@ export default function SignupPage() {
         </form>
 
         <p style={{marginTop:16,fontSize:13,color:'#9E9587',textAlign:'center'}}>
-          Already have an account? <a href="/auth/login" style={{color:'#E8845A',fontWeight:700}}>Log in</a>
+          Already have an account? <a href="/auth/login" style={{color:'#F9C4A0',fontWeight:700}}>Log in</a>
         </p>
       </div>
     </main>
@@ -139,9 +117,9 @@ export default function SignupPage() {
 
 const s: Record<string,React.CSSProperties> = {
   page:     { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#F5F0E8', padding:24, fontFamily:"'Inter',sans-serif" },
-  card:     { background:'#fff', border:'2.5px solid #E8845A', borderRadius:20, padding:36, width:'100%', maxWidth:440, boxShadow:'4px 4px 0 #E8845A' },
-  accentBar:{ height:5, background:'#E8845A', borderRadius:'16px 16px 0 0', margin:'-36px -36px 28px' },
-  h1:       { fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:22, color:'#E8845A', marginBottom:6, letterSpacing:'-0.03em' },
+  card:     { background:'#fff', border:'2.5px solid #F9C4A0', borderRadius:20, padding:36, width:'100%', maxWidth:440, boxShadow:'4px 4px 0 #F9C4A0' },
+  accentBar:{ height:5, background:'#F9C4A0', borderRadius:'16px 16px 0 0', margin:'-36px -36px 28px' },
+  h1:       { fontFamily:"'Lilita One',cursive", fontWeight:400, fontSize:24, color:'#F9C4A0', marginBottom:6, letterSpacing:'-0.01em' },
   label:    { display:'block', fontSize:11, color:'#7B5EA7', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:6, marginTop:14, fontWeight:600 },
-  input:    { width:'100%', background:'#FAFAF8', border:'2px solid #E8845A', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const },
+  input:    { width:'100%', background:'#FAFAF8', border:'2px solid #F9C4A0', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const },
 }
