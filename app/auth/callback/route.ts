@@ -11,22 +11,12 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    const { data } = await supabase.auth.exchangeCodeForSession(code)
-    const user = data?.user
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_approved')
-        .eq('id', user.id)
-        .single()
-
-      if (!profile?.is_approved) {
-        await supabase.auth.signOut()
-        return NextResponse.redirect(`${origin}/auth/pending`)
-      }
-    }
+    await supabase.auth.exchangeCodeForSession(code)
+    // Confirming an email only proves ownership of the inbox — it is not
+    // admin approval. Always sign the session out here so the only way
+    // into /community is via /auth/login, which re-checks is_approved.
+    await supabase.auth.signOut()
   }
 
-  return NextResponse.redirect(`${origin}/community`)
+  return NextResponse.redirect(`${origin}/auth/pending`)
 }
