@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -10,6 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const origin = (await headers()).get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -18,6 +20,7 @@ export async function GET() {
   const { data, error } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email: 'hello@theloungecommunity.co.uk',
+    options: { redirectTo: `${origin}/community` },
   })
 
   if (error || !data?.properties?.action_link) {
