@@ -636,8 +636,12 @@ useEffect(() => {
 .chip.on{background:#7B5EA7;border-color:#7B5EA7;color:#fff}
 .card{background:#fff;border:2px solid #F9C4A0;border-radius:16px;padding:20px 20px 14px;margin-bottom:12px;transition:box-shadow 0.15s,transform 0.15s;position:relative;overflow:hidden}
 .card:hover{box-shadow:4px 4px 0 #F9C4A0;transform:translateY(-2px)}
-      .card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
-      .card.rant::after{background:#F4622A}.card.advice::after{background:#7C5CFC}.card.experience::after{background:#0EAD8B}.card.wins::after{background:#F5A623}.card.venting::after{background:#5B8DD9}.card.poll-card::after{background:linear-gradient(90deg,#7C5CFC,#5B8DD9)}
+      .card.rant{border-top:4px solid #F4622A}
+      .card.advice{border-top:4px solid #7C5CFC}
+      .card.experience{border-top:4px solid #0EAD8B}
+      .card.wins{border-top:4px solid #F5A623}
+      .card.venting{border-top:4px solid #5B8DD9}
+      .card.poll-card{border-top:4px solid #7C5CFC}
       .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
       .card-who{display:flex;align-items:center;gap:10px}
       .avi{width:36px;height:36px;border-radius:10px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
