@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, memo } from "react";
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -133,6 +133,36 @@ const fmtEnd = (d: Date, duration: number) => {
 };
 const fmtDate= (d: Date)    => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 
+const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit }: {
+  p: any; myAvatar: string; isOpen: boolean; onToggle: () => void;
+  draft: string; onDraftChange: (value: string) => void; onSubmit: () => void;
+}) {
+  const count = (p.replies || []).length;
+  return (<>
+    <button className="act" onClick={onToggle}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      {count} {count===1?"reply":"replies"}
+    </button>
+    {isOpen&&<div className="replies">
+      {(p.replies||[]).map((r:any)=>(
+        <div key={r.id} className="reply">
+          <div className="reply-avi">{r.avatar}</div>
+          <div className="reply-body">
+            <span className="reply-who">{r.name}</span>
+            <span className="reply-loc">{r.loc} · {r.time}</span>
+            <div className="reply-text">{r.text}</div>
+          </div>
+        </div>
+      ))}
+      <div className="reply-input-row">
+        <div className="reply-avi">{myAvatar}</div>
+        <textarea className="reply-input" rows={1} placeholder="Add a reply..." value={draft} onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
+        <button className="reply-send" onClick={onSubmit} disabled={!draft.trim()}>Reply</button>
+      </div>
+    </div>}
+  </>);
+});
+
 export default function Lounge() {
   const TICKER_SEGS = [
   { text: 'For the ones who keep it all running', bg: '#FFB3C6', color: '#1A1208' },
@@ -212,7 +242,7 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   if (!was) { const post = posts.find((p:any)=>p.id===id); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'like',post_id:id,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} liked your post`})}) } }
 };
 
-  const toggleReplies=(id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;});
+  const toggleReplies=useCallback((id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;}),[]);
  const submitReply=async(postId:any)=>{
     const text=(replyDrafts[postId]||"").trim();
     if(!text)return;
@@ -363,34 +393,6 @@ useEffect(() => {
   for(let d=1;d<=totalDays;d++)calCells.push(d);
   const todayDate=new Date();
   const isToday=(d:number)=>d===todayDate.getDate()&&calMonth===todayDate.getMonth()&&calYear===todayDate.getFullYear();
-
-  const ReplyBlock=({p}:{p:any})=>{
-    const open=openReplies.has(p.id);
-    const count=(p.replies||[]).length;
-    return(<>
-      <button className="act" onClick={()=>toggleReplies(p.id)}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        {count} {count===1?"reply":"replies"}
-      </button>
-      {open&&<div className="replies">
-        {(p.replies||[]).map((r:any)=>(
-          <div key={r.id} className="reply">
-            <div className="reply-avi">{r.avatar}</div>
-            <div className="reply-body">
-              <span className="reply-who">{r.name}</span>
-              <span className="reply-loc">{r.loc} · {r.time}</span>
-              <div className="reply-text">{r.text}</div>
-            </div>
-          </div>
-        ))}
-        <div className="reply-input-row">
-          <div className="reply-avi">{myAvatar}</div>
-          <textarea className="reply-input" rows={1} placeholder="Add a reply..." value={replyDrafts[p.id]||""} onChange={(e:any)=>{setReplyDrafts((prev:any)=>({...prev,[p.id]:e.target.value}));e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
-          <button className="reply-send" onClick={()=>submitReply(p.id)} disabled={!(replyDrafts[p.id]||"").trim()}>Reply</button>
-        </div>
-      </div>}
-    </>);
-  };
 
   const EventCard=({event,compact}:{event:any,compact:boolean})=>{
     const t=typeOf(event.type);
@@ -798,7 +800,7 @@ useEffect(() => {
                         })}
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
-                      <div className="card-foot"><ReplyBlock p={p}/></div>
+                      <div className="card-foot"><ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}/></div>
                     </div>
                   );
                 }
@@ -818,7 +820,7 @@ useEffect(() => {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         {p.likes}
                       </button>
-                      <ReplyBlock p={p}/>
+                      <ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}/>
                       <button className="act act-sep">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
