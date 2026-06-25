@@ -548,11 +548,11 @@ useEffect(() => {
       .replies{margin-top:12px;border-top:1px solid #F0EDE8;padding-top:12px}
       .reply{display:flex;gap:10px;margin-bottom:10px}
       .reply-avi{width:26px;height:26px;border-radius:7px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-      .reply-body{flex:1}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
+      .reply-body{flex:1;min-width:0}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
       .reply-loc{font-size:10px;color:#9E9587;margin-left:6px}
-      .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px}
-      .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:center}
-      .reply-input{flex:1;width:100%;min-width:0;box-sizing:border-box;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:44px;overflow:hidden}
+      .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
+      .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:center;overflow:hidden;min-width:0}
+      .reply-input{flex:1;width:100%;min-width:0;box-sizing:border-box;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:44px;overflow:hidden;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .reply-send{flex-shrink:0;background:#F9C4A0;border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
       .reply-send:disabled{opacity:0.3;cursor:default}
       .no-results{text-align:center;padding:48px 20px}
