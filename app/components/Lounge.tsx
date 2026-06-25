@@ -150,19 +150,21 @@ function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
 
 type ReplyItemProps = {
   r: any; postId: any; myAvatar: string;
-  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any;
+  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any; expandedReplies: Set<any>;
   onToggleReplyLike: (postId: any, replyId: any) => void;
   onToggleReplyInput: (replyId: any, name: string) => void;
   onNestedDraftChange: (replyId: any, value: string) => void;
   onSubmitNestedReply: (postId: any, replyId: any) => void;
+  onToggleExpanded: (replyId: any) => void;
 };
 
-const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, openReplyInputs, nestedReplyDrafts, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply }: ReplyItemProps) {
+const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: ReplyItemProps) {
   const isLiked = likedReplies.has(r.id);
   const likeCount = r.likes || 0;
   const inputOpen = openReplyInputs.has(r.id);
   const childReplies = r.replies || [];
   const draft = nestedReplyDrafts[r.id] || "";
+  const isExpanded = expandedReplies.has(r.id);
   return (
     <div className="reply">
       <div className="reply-avi">{r.avatar}</div>
@@ -189,12 +191,17 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
           </div>
         )}
         {childReplies.length>0 && (
+          <button className="view-replies-toggle" onClick={()=>onToggleExpanded(r.id)}>
+            {isExpanded ? "▲ Hide replies" : `▼ View ${childReplies.length} ${childReplies.length===1?"reply":"replies"}`}
+          </button>
+        )}
+        {childReplies.length>0 && isExpanded && (
           <div className="nested-replies">
             {childReplies.map((child:any)=>(
               <ReplyItem key={child.id} r={child} postId={postId} myAvatar={myAvatar}
-                likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                 onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
-                onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply}/>
+                onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
             ))}
           </div>
         )}
@@ -203,14 +210,15 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
   );
 });
 
-const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply }: {
+const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: {
   p: any; myAvatar: string; isOpen: boolean; onToggle: () => void;
   draft: string; onDraftChange: (value: string) => void; onSubmit: () => void;
-  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any;
+  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any; expandedReplies: Set<any>;
   onToggleReplyLike: (postId: any, replyId: any) => void;
   onToggleReplyInput: (replyId: any, name: string) => void;
   onNestedDraftChange: (replyId: any, value: string) => void;
   onSubmitNestedReply: (postId: any, replyId: any) => void;
+  onToggleExpanded: (replyId: any) => void;
 }) {
   const count = (p.replies || []).length;
   return (<>
@@ -221,9 +229,9 @@ const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, dra
     {isOpen&&<div className="replies">
       {(p.replies||[]).map((r:any)=>(
         <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar}
-          likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+          likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
           onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
-          onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply}/>
+          onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
       ))}
       <div className="reply-input-row" style={{width:'100%',maxWidth:'100%'}}>
         <div className="reply-avi">{myAvatar}</div>
@@ -264,6 +272,7 @@ export default function Lounge() {
   const [likedReplies, setLikedReplies] = useState(new Set<any>());
   const [openReplyInputs, setOpenReplyInputs] = useState(new Set<any>());
   const [nestedReplyDrafts, setNestedReplyDrafts] = useState<any>({});
+  const [expandedReplies, setExpandedReplies] = useState(new Set<any>());
   const [votedPolls, setVotedPolls]   = useState<any>({});
   const [activeTab, setActiveTab]     = useState("feed");
   const [calMonth, setCalMonth]       = useState(new Date().getMonth());
@@ -343,7 +352,11 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:addNestedReply(p.replies||[],parentReplyId,newReply)}));
     setNestedReplyDrafts((prev:any)=>({...prev,[parentReplyId]:""}));
     setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.delete(parentReplyId); return n;});
+    setExpandedReplies((prev:any)=>{const n=new Set(prev); n.add(parentReplyId); return n;});
     showToast("Reply posted ✓");
+  };
+  const toggleExpandedReplies = (replyId:any) => {
+    setExpandedReplies((prev:any)=>{const n=new Set(prev); n.has(replyId)?n.delete(replyId):n.add(replyId); return n;});
   };
   const voteOnPoll=(pollId:any,optId:any)=>{
     if(votedPolls[pollId])return;
@@ -650,6 +663,8 @@ useEffect(() => {
       .reply-act:hover{color:#1A1814}
       .reply-act.on{color:#F9C4A0}
       .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0;min-width:0}
+      .view-replies-toggle{display:block;background:none;border:none;cursor:pointer;padding:0;margin-top:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#7B5EA7}
+      .view-replies-toggle:hover{text-decoration:underline}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:flex-start;overflow:hidden;min-width:0;width:100%;max-width:100%}
       .reply-input-row-nested{margin-left:-36px;width:calc(100% + 36px);max-width:calc(100% + 36px)}
       .reply-input-stack{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:1 1 auto;width:100%;max-width:100%;min-width:0}
@@ -905,10 +920,10 @@ useEffect(() => {
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
                       <div className="card-foot"><ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
-                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
                       onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
-                      onSubmitNestedReply={submitNestedReply}/></div>
+                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/></div>
                     </div>
                   );
                 }
@@ -929,10 +944,10 @@ useEffect(() => {
                         {p.likes}
                       </button>
                       <ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
-                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
                       onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
-                      onSubmitNestedReply={submitNestedReply}/>
+                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/>
                       <button className="act act-sep">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
