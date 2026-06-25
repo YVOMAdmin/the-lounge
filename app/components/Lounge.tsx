@@ -210,8 +210,18 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
   );
 });
 
-const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: {
-  p: any; myAvatar: string; isOpen: boolean; onToggle: () => void;
+const ReplyBlock = memo(function ReplyBlock({ p, isOpen, onToggle }: { p: any; isOpen: boolean; onToggle: () => void }) {
+  const count = (p.replies || []).length;
+  return (
+    <button className="act" onClick={onToggle}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      {count} {count===1?"Comment":"Comments"}
+    </button>
+  );
+});
+
+const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, isOpen, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: {
+  p: any; myAvatar: string; isOpen: boolean;
   draft: string; onDraftChange: (value: string) => void; onSubmit: () => void;
   likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any; expandedReplies: Set<any>;
   onToggleReplyLike: (postId: any, replyId: any) => void;
@@ -220,28 +230,27 @@ const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, dra
   onSubmitNestedReply: (postId: any, replyId: any) => void;
   onToggleExpanded: (replyId: any) => void;
 }) {
-  const count = (p.replies || []).length;
-  return (<>
-    <button className="act" onClick={onToggle}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      {count} {count===1?"Comment":"Comments"}
-    </button>
-    {isOpen&&<div className="replies">
-      {(p.replies||[]).map((r:any)=>(
-        <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar}
-          likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
-          onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
-          onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
-      ))}
-      <div className="reply-input-row" style={{width:'100%',maxWidth:'100%'}}>
+  return (
+    <div className="comments-panel">
+      {isOpen && (p.replies||[]).length>0 && (
+        <div className="replies">
+          {(p.replies||[]).map((r:any)=>(
+            <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar}
+              likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
+              onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
+              onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
+          ))}
+        </div>
+      )}
+      <div className="reply-input-row comment-input-row">
         <div className="reply-avi">{myAvatar}</div>
         <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
           <textarea className="reply-input comment-input" rows={1} placeholder="Add a comment..." style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',minHeight:80}} value={draft} onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
           <button className="reply-send" onClick={onSubmit} disabled={!draft.trim()}>Reply</button>
         </div>
       </div>
-    </div>}
-  </>);
+    </div>
+  );
 });
 
 export default function Lounge() {
@@ -652,7 +661,9 @@ useEffect(() => {
       .card-foot{display:flex;align-items:center;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid #F0EDE8}
       .act{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#9E9587;transition:color 0.15s;padding:0}
       .act:hover{color:#1A1814}.act.on{color:#F4622A}.act-sep{margin-left:auto}
-      .replies{margin-top:12px;border-top:1px solid #F0EDE8;padding-top:12px}
+      .comments-panel{width:100%;max-width:100%;margin:0;margin-left:0;padding:0}
+      .replies{margin-top:12px;border-top:1px solid #F0EDE8;padding-top:12px;width:100%;max-width:100%}
+      .comment-input-row{margin-top:12px;margin-left:0;padding-top:12px;border-top:1px solid #F0EDE8}
       .reply{display:flex;gap:10px;margin-bottom:10px}
       .reply-avi{width:26px;height:26px;border-radius:7px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
       .reply-body{flex:1;min-width:0}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
@@ -919,11 +930,12 @@ useEffect(() => {
                         })}
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
-                      <div className="card-foot"><ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      <div className="card-foot"><ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/></div>
+                      <CommentsPanel p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
                       likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
                       onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
-                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/></div>
+                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/>
                     </div>
                   );
                 }
@@ -943,15 +955,16 @@ useEffect(() => {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         {p.likes}
                       </button>
-                      <ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
-                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
-                      onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
-                      onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
-                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/>
+                      <ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/>
                       <button className="act act-sep">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
                     </div>
+                    <CommentsPanel p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
+                      onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
+                      onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
+                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/>
                   </div>
                 );
               })}
