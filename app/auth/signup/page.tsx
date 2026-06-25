@@ -9,9 +9,27 @@ const supabase = createBrowserClient(
 )
 
 const AVATARS = ['📋','🗂','📌','☕','🖨','📎','📁','✉️','🗓','💼']
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const CURRENT_YEAR = new Date().getFullYear()
+const YEARS = Array.from({ length: CURRENT_YEAR - 1900 + 1 }, (_, i) => CURRENT_YEAR - i)
+
+const MEMBERSHIP_TYPES = [
+  { id: 'free', label: 'Free', price: '£0', priceNote: '/month', features: 'Job Board & Events — read only' },
+  { id: 'member', label: 'Member', price: '£2.00', priceNote: '/month', features: 'Full access · 🌟 Founders Offer' },
+]
+
+function calculateAge(birthMonth: number, birthYear: number): number {
+  const now = new Date()
+  let age = now.getFullYear() - birthYear
+  if (now.getMonth() + 1 < birthMonth) age -= 1
+  return age
+}
 
 export default function SignupPage() {
-  const [form, setForm] = useState({ email:'', password:'', username:'', location:'', avatar_emoji:'📋' })
+  const [form, setForm] = useState({
+    email: '', password: '', username: '', location: '', avatar_emoji: '📋',
+    membership_type: 'free', profession: '', birth_month: '', birth_year: '',
+  })
   const [error, setError] = useState<string|null>(null)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -19,16 +37,51 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    const birthMonth = parseInt(form.birth_month, 10)
+    const birthYear = parseInt(form.birth_year, 10)
+
+    if (!birthMonth || !birthYear) {
+      setError('Please select your birth month and year.')
+      return
+    }
+
+    if (calculateAge(birthMonth, birthYear) < 18) {
+      setError('You must be 18 or older to join The Lounge.')
+      return
+    }
+
     setLoading(true)
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
-        data: { username: form.username, avatar_emoji: form.avatar_emoji, location: form.location },
+        data: {
+          username: form.username,
+          avatar_emoji: form.avatar_emoji,
+          location: form.location,
+          membership_type: form.membership_type,
+          profession: form.profession,
+          birth_month: birthMonth,
+          birth_year: birthYear,
+        },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
     if (error) { setError(error.message); setLoading(false); return }
+
+    // Best-effort: if signUp returns an active session immediately, also
+    // write these fields directly so they land even if the profiles-row
+    // creation trigger hasn't been updated to read the new metadata keys.
+    if (data.user) {
+      await supabase.from('profiles').update({
+        membership_type: form.membership_type,
+        profession: form.profession,
+        birth_month: birthMonth,
+        birth_year: birthYear,
+      }).eq('id', data.user.id)
+    }
+
     setDone(true)
   }
 
@@ -85,6 +138,46 @@ export default function SignupPage() {
           <input style={s.input} placeholder="e.g. GMT, EST, London"
             value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))}/>
 
+          <label style={s.label}>What is your profession?</label>
+          <input style={s.input} placeholder="e.g. Executive Assistant" required
+            value={form.profession} onChange={e=>setForm(f=>({...f,profession:e.target.value}))}/>
+
+          <label style={s.label}>Date of birth</label>
+          <div style={{display:'flex',gap:8,marginBottom:8}}>
+            <select style={s.select} required value={form.birth_month}
+              onChange={e=>setForm(f=>({...f,birth_month:e.target.value}))}>
+              <option value="">Month</option>
+              {MONTHS.map((m,i)=>(<option key={m} value={i+1}>{m}</option>))}
+            </select>
+            <select style={s.select} required value={form.birth_year}
+              onChange={e=>setForm(f=>({...f,birth_year:e.target.value}))}>
+              <option value="">Year</option>
+              {YEARS.map(y=>(<option key={y} value={y}>{y}</option>))}
+            </select>
+          </div>
+          <p style={{fontSize:11,color:'#9E9587',marginBottom:16,marginTop:0}}>You must be 18 or older to join. This is kept private and never shown publicly.</p>
+
+          <label style={s.label}>Membership type</label>
+          <div style={{display:'flex',gap:10,marginBottom:16}}>
+            {MEMBERSHIP_TYPES.map(m=>{
+              const selected = form.membership_type === m.id
+              return (
+                <div key={m.id} onClick={()=>setForm(f=>({...f,membership_type:m.id}))}
+                  style={{
+                    flex:1, cursor:'pointer', textAlign:'center', borderRadius:16, padding:'14px 12px',
+                    border: selected ? '2.5px solid #F9C4A0' : '2px solid #E8E3DC',
+                    background: selected ? '#FFF8F5' : '#FAFAF8', transition:'all 0.15s',
+                  }}>
+                  <div style={{fontFamily:"'Lilita One',cursive",fontSize:15,color:'#1A1208',marginBottom:4}}>{m.label}</div>
+                  <div style={{fontSize:17,fontWeight:700,color:'#7B5EA7',marginBottom:6}}>
+                    {m.price}<span style={{fontSize:11,fontWeight:400,color:'#9E9587'}}>{m.priceNote}</span>
+                  </div>
+                  <div style={{fontSize:10,color:'#6B6358',lineHeight:1.5}}>{m.features}</div>
+                </div>
+              )
+            })}
+          </div>
+
           <label style={s.label}>Email</label>
           <input style={s.input} type="email" placeholder="you@example.com" required
             value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))}/>
@@ -122,4 +215,5 @@ const s: Record<string,React.CSSProperties> = {
   h1:       { fontFamily:"'Lilita One',cursive", fontWeight:400, fontSize:24, color:'#F9C4A0', marginBottom:6, letterSpacing:'-0.01em' },
   label:    { display:'block', fontSize:11, color:'#7B5EA7', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:6, marginTop:14, fontWeight:600 },
   input:    { width:'100%', background:'#FAFAF8', border:'2px solid #F9C4A0', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const },
+  select:   { flex:1, background:'#FAFAF8', border:'2px solid #F9C4A0', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const, fontFamily:"'Inter',sans-serif" },
 }
