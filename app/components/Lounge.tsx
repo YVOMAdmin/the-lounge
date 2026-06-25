@@ -178,7 +178,7 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
           <button className="reply-act" onClick={()=>onToggleReplyInput(r.id, r.name)}>Reply</button>
         </div>
         {inputOpen && (
-          <div className="reply-input-row" style={{marginTop:8,width:'100%',maxWidth:'100%'}}>
+          <div className="reply-input-row reply-input-row-nested" style={{marginTop:8}}>
             <div className="reply-avi">{myAvatar}</div>
             <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
               <textarea className="reply-input nested-reply-input" rows={1} placeholder={`Reply to @${r.name}...`} value={draft}
@@ -651,6 +651,7 @@ useEffect(() => {
       .reply-act.on{color:#F9C4A0}
       .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0;min-width:0}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:flex-start;overflow:hidden;min-width:0;width:100%;max-width:100%}
+      .reply-input-row-nested{margin-left:-36px;width:calc(100% + 36px);max-width:calc(100% + 36px)}
       .reply-input-stack{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:1 1 auto;width:100%;max-width:100%;min-width:0}
       .reply-input{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:44px;overflow:hidden;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
       .reply-input::placeholder{color:#9E9587;opacity:1}
