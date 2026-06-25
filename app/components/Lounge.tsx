@@ -178,6 +178,11 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
             {likeCount}
           </button>
           <button className="reply-act" onClick={()=>onToggleReplyInput(r.id, r.name)}>Reply</button>
+          {childReplies.length>0 && (
+            <button className="view-replies-toggle" onClick={()=>onToggleExpanded(r.id)}>
+              {isExpanded ? "▲ Hide replies" : `▼ View ${childReplies.length} ${childReplies.length===1?"reply":"replies"}`}
+            </button>
+          )}
         </div>
         {inputOpen && (
           <div className="reply-input-row reply-input-row-nested" style={{marginTop:8}}>
@@ -189,11 +194,6 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
               <button className="reply-send" onClick={()=>onSubmitNestedReply(postId, r.id)} disabled={!draft.trim()}>Reply</button>
             </div>
           </div>
-        )}
-        {childReplies.length>0 && (
-          <button className="view-replies-toggle" onClick={()=>onToggleExpanded(r.id)}>
-            {isExpanded ? "▲ Hide replies" : `▼ View ${childReplies.length} ${childReplies.length===1?"reply":"replies"}`}
-          </button>
         )}
         {childReplies.length>0 && isExpanded && (
           <div className="nested-replies">
@@ -669,12 +669,12 @@ useEffect(() => {
       .reply-body{flex:1;min-width:0}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
       .reply-loc{font-size:10px;color:#9E9587;margin-left:6px}
       .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
-      .reply-actions{display:flex;align-items:center;gap:14px;margin-top:6px}
+      .reply-actions{display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap}
       .reply-act{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:#9E9587;transition:color 0.15s;padding:0}
       .reply-act:hover{color:#1A1814}
       .reply-act.on{color:#F9C4A0}
       .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0;min-width:0}
-      .view-replies-toggle{display:block;background:none;border:none;cursor:pointer;padding:0;margin-top:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#7B5EA7}
+      .view-replies-toggle{display:inline-flex;align-items:center;background:none;border:none;cursor:pointer;padding:0;margin:0;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#7B5EA7;white-space:nowrap}
       .view-replies-toggle:hover{text-decoration:underline}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:flex-start;overflow:hidden;min-width:0;width:100%;max-width:100%}
       .reply-input-row-nested{margin-left:-36px;width:calc(100% + 36px);max-width:calc(100% + 36px)}
