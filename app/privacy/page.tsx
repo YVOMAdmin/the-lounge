@@ -85,7 +85,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="6. Community Visibility">
-          <p>The Lounge is a <strong>closed, invite-only community</strong>. Your posts, replies, and profile information are visible only to other approved members. Nothing you post is publicly accessible on the internet.</p>
+          <p>The Lounge is a <strong>closed, approval-based community</strong>. Your posts, replies, and profile information are visible only to other approved members. Nothing you post is publicly accessible on the internet.</p>
           <p style={styles.mt}>Your email address is <strong>never</strong> visible to other members.</p>
         </Section>
 

@@ -22,7 +22,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="2. What The Lounge Is">
-          <p>The Lounge is a private, invite-only online community for administrative and executive support professionals — remote or office-based. It is a space to share experiences, seek advice, vent, celebrate wins, and connect with others who understand the realities of the work you do.</p>
+          <p>The Lounge is a private, approval-based online community for administrative and executive support professionals — remote or office-based. It is a space to share experiences, seek advice, vent, celebrate wins, and connect with others who understand the realities of the work you do.</p>
           <p style={styles.mt}>The Lounge is not a public forum. Access is restricted to approved members only.</p>
         </Section>
 
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <ul style={styles.ul}>
             <li>Be 18 years of age or older</li>
             <li>Work in or have worked in an administrative, executive support, operations, or related professional role — remote or office-based</li>
-            <li>Have been invited via an approved invite link</li>
+            <li>Have signed up and been approved by an administrator</li>
             <li>Agree to and comply with these Terms</li>
           </ul>
           <p style={styles.mt}>We reserve the right to verify eligibility and to decline or revoke membership at our sole discretion.</p>
