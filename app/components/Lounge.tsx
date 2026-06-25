@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, memo } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, memo } from "react";
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -230,6 +230,17 @@ const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, isOpen, draft, 
   onSubmitNestedReply: (postId: any, replyId: any) => void;
   onToggleExpanded: (replyId: any) => void;
 }) {
+  const [composerOpen, setComposerOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement|null>(null);
+
+  const openComposer = () => {
+    setComposerOpen(true);
+    setTimeout(()=>textareaRef.current?.focus(), 0);
+  };
+  const handleBlur = () => {
+    setTimeout(()=>{ if(!draft.trim()) setComposerOpen(false); }, 150);
+  };
+
   return (
     <div className="comments-panel">
       {isOpen && (p.replies||[]).length>0 && (
@@ -242,13 +253,23 @@ const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, isOpen, draft, 
           ))}
         </div>
       )}
-      <div className="reply-input-row comment-input-row">
-        <div className="reply-avi">{myAvatar}</div>
-        <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
-          <textarea className="reply-input comment-input" rows={1} placeholder="Add a comment..." style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',minHeight:80}} value={draft} onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
-          <button className="reply-send" onClick={onSubmit} disabled={!draft.trim()}>Reply</button>
+      {!composerOpen ? (
+        <div className="comment-input-preview" onClick={openComposer}>
+          <div className="reply-avi">{myAvatar}</div>
+          <span className="comment-input-preview-text">Add a comment...</span>
         </div>
-      </div>
+      ) : (
+        <div className="reply-input-row comment-input-row">
+          <div className="reply-avi">{myAvatar}</div>
+          <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
+            <textarea ref={textareaRef} className="reply-input comment-input" rows={1} placeholder="Add a comment..." autoFocus
+              style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',minHeight:80}} value={draft}
+              onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}
+              onBlur={handleBlur}/>
+            <button className="reply-send" onClick={()=>{onSubmit();setComposerOpen(false);}} disabled={!draft.trim()}>Reply</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
@@ -668,6 +689,8 @@ useEffect(() => {
       .comments-panel{width:100%;max-width:100%;margin:0;margin-left:0;padding:0}
       .replies{margin-top:12px;border-top:1px solid #F0EDE8;padding-top:12px;width:100%;max-width:100%}
       .comment-input-row{margin-top:12px;margin-left:0;padding-top:12px;border-top:1px solid #F0EDE8}
+      .comment-input-preview{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #F0EDE8;cursor:pointer;width:100%;max-width:100%}
+      .comment-input-preview-text{font-family:'Inter',sans-serif;font-size:13px;color:#B8B0A4}
       .reply{display:flex;gap:10px;margin-bottom:10px}
       .reply-avi{width:26px;height:26px;border-radius:7px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
       .reply-body{flex:1;min-width:0}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
