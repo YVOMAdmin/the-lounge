@@ -180,7 +180,7 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
         {inputOpen && (
           <div className="reply-input-row" style={{marginTop:8}}>
             <div className="reply-avi">{myAvatar}</div>
-            <textarea className="reply-input" rows={1} placeholder={`Reply to ${r.name}...`} value={draft}
+            <textarea className="reply-input nested-reply-input" rows={1} placeholder={`Reply to ${r.name}...`} value={draft}
               onChange={(e:any)=>{onNestedDraftChange(r.id, e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
             <button className="reply-send" onClick={()=>onSubmitNestedReply(postId, r.id)} disabled={!draft.trim()}>Reply</button>
           </div>
@@ -644,9 +644,11 @@ useEffect(() => {
       .reply-act{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:#9E9587;transition:color 0.15s;padding:0}
       .reply-act:hover{color:#1A1814}
       .reply-act.on{color:#F9C4A0}
-      .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0}
-      .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:center;overflow:hidden;min-width:0}
+      .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0;min-width:0}
+      .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:center;overflow:hidden;min-width:0;width:100%}
       .reply-input{flex:1;width:100%;min-width:0;box-sizing:border-box;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:44px;overflow:hidden;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
+      .reply-input::placeholder{color:#9E9587;opacity:1}
+      .nested-reply-input{min-height:70px;width:100%}
 .reply-send{flex-shrink:0;background:#F9C4A0;border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
       .reply-send:disabled{opacity:0.3;cursor:default}
       .no-results{text-align:center;padding:48px 20px}
