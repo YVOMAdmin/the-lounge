@@ -133,9 +133,81 @@ const fmtEnd = (d: Date, duration: number) => {
 };
 const fmtDate= (d: Date)    => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 
-const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit }: {
+function mapReplyTree(replies: any[], targetId: any, fn: (r: any) => any): any[] {
+  return (replies||[]).map((r:any) => {
+    if (r.id === targetId) return fn(r);
+    if (r.replies && r.replies.length) return { ...r, replies: mapReplyTree(r.replies, targetId, fn) };
+    return r;
+  });
+}
+function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
+  return (replies||[]).map((r:any) => {
+    if (r.id === targetId) return { ...r, replies: [...(r.replies||[]), newReply] };
+    if (r.replies && r.replies.length) return { ...r, replies: addNestedReply(r.replies, targetId, newReply) };
+    return r;
+  });
+}
+
+type ReplyItemProps = {
+  r: any; postId: any; myAvatar: string;
+  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any;
+  onToggleReplyLike: (postId: any, replyId: any) => void;
+  onToggleReplyInput: (replyId: any, name: string) => void;
+  onNestedDraftChange: (replyId: any, value: string) => void;
+  onSubmitNestedReply: (postId: any, replyId: any) => void;
+};
+
+const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, openReplyInputs, nestedReplyDrafts, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply }: ReplyItemProps) {
+  const isLiked = likedReplies.has(r.id);
+  const likeCount = r.likes || 0;
+  const inputOpen = openReplyInputs.has(r.id);
+  const childReplies = r.replies || [];
+  const draft = nestedReplyDrafts[r.id] || "";
+  return (
+    <div className="reply">
+      <div className="reply-avi">{r.avatar}</div>
+      <div className="reply-body">
+        <span className="reply-who">{r.name}</span>
+        <span className="reply-loc">{r.loc} · {r.time}</span>
+        <div className="reply-text">{r.text}</div>
+        <div className="reply-actions">
+          <button className={`reply-act ${isLiked?"on":""}`} onClick={()=>onToggleReplyLike(postId, r.id)}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            {likeCount}
+          </button>
+          <button className="reply-act" onClick={()=>onToggleReplyInput(r.id, r.name)}>Reply</button>
+        </div>
+        {inputOpen && (
+          <div className="reply-input-row" style={{marginTop:8}}>
+            <div className="reply-avi">{myAvatar}</div>
+            <textarea className="reply-input" rows={1} placeholder={`Reply to ${r.name}...`} value={draft}
+              onChange={(e:any)=>{onNestedDraftChange(r.id, e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
+            <button className="reply-send" onClick={()=>onSubmitNestedReply(postId, r.id)} disabled={!draft.trim()}>Reply</button>
+          </div>
+        )}
+        {childReplies.length>0 && (
+          <div className="nested-replies">
+            {childReplies.map((child:any)=>(
+              <ReplyItem key={child.id} r={child} postId={postId} myAvatar={myAvatar}
+                likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
+                onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply}/>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply }: {
   p: any; myAvatar: string; isOpen: boolean; onToggle: () => void;
   draft: string; onDraftChange: (value: string) => void; onSubmit: () => void;
+  likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any;
+  onToggleReplyLike: (postId: any, replyId: any) => void;
+  onToggleReplyInput: (replyId: any, name: string) => void;
+  onNestedDraftChange: (replyId: any, value: string) => void;
+  onSubmitNestedReply: (postId: any, replyId: any) => void;
 }) {
   const count = (p.replies || []).length;
   return (<>
@@ -145,14 +217,10 @@ const ReplyBlock = memo(function ReplyBlock({ p, myAvatar, isOpen, onToggle, dra
     </button>
     {isOpen&&<div className="replies">
       {(p.replies||[]).map((r:any)=>(
-        <div key={r.id} className="reply">
-          <div className="reply-avi">{r.avatar}</div>
-          <div className="reply-body">
-            <span className="reply-who">{r.name}</span>
-            <span className="reply-loc">{r.loc} · {r.time}</span>
-            <div className="reply-text">{r.text}</div>
-          </div>
-        </div>
+        <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar}
+          likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+          onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
+          onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply}/>
       ))}
       <div className="reply-input-row">
         <div className="reply-avi">{myAvatar}</div>
@@ -188,6 +256,9 @@ export default function Lounge() {
   const [toast, setToast]             = useState<string|null>(null);
   const [openReplies, setOpenReplies] = useState(new Set<any>());
   const [replyDrafts, setReplyDrafts] = useState<any>({});
+  const [likedReplies, setLikedReplies] = useState(new Set<any>());
+  const [openReplyInputs, setOpenReplyInputs] = useState(new Set<any>());
+  const [nestedReplyDrafts, setNestedReplyDrafts] = useState<any>({});
   const [votedPolls, setVotedPolls]   = useState<any>({});
   const [activeTab, setActiveTab]     = useState("feed");
   const [calMonth, setCalMonth]       = useState(new Date().getMonth());
@@ -250,6 +321,24 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setReplyDrafts((prev:any)=>({...prev,[postId]:""}));
     showToast("Reply posted ✓");
     const post = posts.find((p:any)=>p.id===postId); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'reply',post_id:postId,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} replied to your post`})}) }
+  };
+  const toggleReplyLike = (postId:any, replyId:any) => {
+    const was = likedReplies.has(replyId);
+    setLikedReplies((prev:any)=>{const n=new Set(prev); was?n.delete(replyId):n.add(replyId); return n;});
+    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:mapReplyTree(p.replies||[],replyId,(r:any)=>({...r,likes:(r.likes||0)+(was?-1:1)}))}));
+  };
+  const toggleReplyInput = (replyId:any, name:string) => {
+    setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.has(replyId)?n.delete(replyId):n.add(replyId); return n;});
+    setNestedReplyDrafts((prev:any)=>prev[replyId]!==undefined?prev:{...prev,[replyId]:`@${name} `});
+  };
+  const submitNestedReply = (postId:any, parentReplyId:any) => {
+    const text=(nestedReplyDrafts[parentReplyId]||"").trim();
+    if(!text)return;
+    const newReply={id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]};
+    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:addNestedReply(p.replies||[],parentReplyId,newReply)}));
+    setNestedReplyDrafts((prev:any)=>({...prev,[parentReplyId]:""}));
+    setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.delete(parentReplyId); return n;});
+    showToast("Reply posted ✓");
   };
   const voteOnPoll=(pollId:any,optId:any)=>{
     if(votedPolls[pollId])return;
@@ -551,6 +640,11 @@ useEffect(() => {
       .reply-body{flex:1;min-width:0}.reply-who{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
       .reply-loc{font-size:10px;color:#9E9587;margin-left:6px}
       .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
+      .reply-actions{display:flex;align-items:center;gap:14px;margin-top:6px}
+      .reply-act{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:#9E9587;transition:color 0.15s;padding:0}
+      .reply-act:hover{color:#1A1814}
+      .reply-act.on{color:#F9C4A0}
+      .nested-replies{margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid #F9C4A0}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:center;overflow:hidden;min-width:0}
       .reply-input{flex:1;width:100%;min-width:0;box-sizing:border-box;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:44px;overflow:hidden;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .reply-send{flex-shrink:0;background:#F9C4A0;border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
@@ -800,7 +894,11 @@ useEffect(() => {
                         })}
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
-                      <div className="card-foot"><ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}/></div>
+                      <div className="card-foot"><ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                      onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
+                      onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
+                      onSubmitNestedReply={submitNestedReply}/></div>
                     </div>
                   );
                 }
@@ -820,7 +918,11 @@ useEffect(() => {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         {p.likes}
                       </button>
-                      <ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}/>
+                      <ReplyBlock p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts}
+                      onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
+                      onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
+                      onSubmitNestedReply={submitNestedReply}/>
                       <button className="act act-sep">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
