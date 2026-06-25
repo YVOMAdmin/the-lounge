@@ -134,6 +134,7 @@ export default function SignupPage() {
           <label style={s.label}>Username</label>
           <input style={s.input} placeholder="e.g. diane_gmt" required
             value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value}))}/>
+          <p style={{fontSize:11,color:'#9E9587',fontFamily:"'Inter',sans-serif",fontStyle:'italic',margin:'6px 0 0'}}>This is how you'll appear in the community — feel free to use a nickname!</p>
 
           <label style={s.label}>Timezone / Location</label>
           <input style={s.input} placeholder="e.g. GMT, EST, London"
