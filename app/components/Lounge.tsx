@@ -385,7 +385,7 @@ useEffect(() => {
         ))}
         <div className="reply-input-row">
           <div className="reply-avi">{myAvatar}</div>
-          <textarea className="reply-input" rows={1} placeholder="Add a reply..." value={replyDrafts[p.id]||""} onChange={(e:any)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:e.target.value}))}/>
+          <textarea className="reply-input" rows={1} placeholder="Add a reply..." value={replyDrafts[p.id]||""} onChange={(e:any)=>{setReplyDrafts((prev:any)=>({...prev,[p.id]:e.target.value}));e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}/>
           <button className="reply-send" onClick={()=>submitReply(p.id)} disabled={!(replyDrafts[p.id]||"").trim()}>Reply</button>
         </div>
       </div>}
@@ -550,7 +550,7 @@ useEffect(() => {
       .reply-loc{font-size:10px;color:#9E9587;margin-left:6px}
       .reply-text{font-size:13px;color:#3A3530;line-height:1.6;margin-top:2px}
       .reply-input-row{display:flex;gap:8px;margin-top:10px;align-items:flex-start}
-      .reply-input{flex:1;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:36px}
+      .reply-input{flex:1;background:#FAFAF8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 11px;resize:none;outline:none;min-height:80px;overflow:hidden}
 .reply-send{background:#F9C4A0;border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
       .reply-send:disabled{opacity:0.3;cursor:default}
       .no-results{text-align:center;padding:48px 20px}
@@ -1030,7 +1030,7 @@ useEffect(() => {
         <div className="modal">
           <div className="modal-title">What's going on?</div>
           <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
-          <textarea placeholder="Tell the group what's really going on..." value={draft.content} onChange={(e:any)=>setDraft((d:any)=>({...d,content:e.target.value}))}/>
+          <textarea style={{minHeight:140}} placeholder="Tell the group what's really going on..." value={draft.content} onChange={(e:any)=>setDraft((d:any)=>({...d,content:e.target.value}))}/>
           <div className="cats">{CATEGORIES.map((c:any)=>(<button key={c.id} className={`cat-opt ${draft.category===c.id?"sel":""}`} onClick={()=>setDraft((d:any)=>({...d,category:c.id}))}>{c.emoji} {c.label}</button>))}</div>
           <div className="modal-foot"><button className="btn-cancel" onClick={()=>setCompose(false)}>Cancel</button><button className="btn-submit" onClick={submitPost} disabled={!draft.content.trim()}>Post</button></div>
         </div>
