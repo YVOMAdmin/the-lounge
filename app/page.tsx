@@ -161,7 +161,7 @@ export default function LandingPage() {
       <div className={`drawer ${menuOpen ? 'open' : ''}`}>
         <button className="drawer-close" onClick={() => setMenuOpen(false)}>✕</button>
         <div className="drawer-title">Menu</div>
-        <a href="mailto:hello@theloungecommunity.co.uk" className="drawer-link">✉️ Contact Us</a>
+        <a href="/contact" className="drawer-link">✉️ Contact Us</a>
         <a href="/support" className="drawer-link">Support Beyond Our Walls 🧡</a>
       </div>
 

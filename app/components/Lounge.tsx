@@ -1204,7 +1204,7 @@ useEffect(() => {
           <span style={{color:"#D4CEC5"}}>·</span>
           <a href="/terms" className="site-footer-link">Terms of Use</a>
           <span style={{color:"#D4CEC5"}}>·</span>
-          <a href="mailto:hello@theloungecommunity.co.uk" className="site-footer-link">Contact</a>
+          <a href="/contact" className="site-footer-link">Contact</a>
           <span style={{color:"#D4CEC5"}}>·</span>
           <a href="/support" className="site-footer-link">Support Beyond Our Walls 🧡</a>
         </div>
