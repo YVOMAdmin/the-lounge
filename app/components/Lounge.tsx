@@ -635,6 +635,8 @@ useEffect(() => {
       .btn-icon-sm{background:transparent;color:#F9C4A0;border:1.5px solid #F9C4A0;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
       .btn-icon-sm:hover{background:#F9C4A0;color:#fff}
       .btn-icon-sm-solid{background:#F9C4A0;color:#fff;border:1.5px solid #F9C4A0;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:background 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+      .hdr-support-link{color:#7B5EA7;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;text-decoration:none;white-space:nowrap}
+      .hdr-support-link:hover{text-decoration:underline}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
       .search-input:focus{background:#fff;border-color:#B8B0A4}
       .search-input::placeholder{color:#B8B0A4}
@@ -908,6 +910,7 @@ useEffect(() => {
   </a>
 )}
           <button className="btn-icon-sm" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
+          <a href="/support" className="hdr-support-link">Support Beyond Our Walls 🧡</a>
         </div>
         <div className="hdr-row2">
 <a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
