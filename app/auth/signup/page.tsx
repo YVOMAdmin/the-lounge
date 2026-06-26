@@ -29,6 +29,7 @@ export default function SignupPage() {
   const [form, setForm] = useState({
     email: '', password: '', username: '', location: '', avatar_emoji: '📋',
     membership_type: 'free', profession: '', birth_month: '', birth_year: '',
+    terms_accepted: false, newsletter_opted_in: false,
   })
   const [error, setError] = useState<string|null>(null)
   const [loading, setLoading] = useState(false)
@@ -52,6 +53,11 @@ export default function SignupPage() {
       return
     }
 
+    if (!form.terms_accepted) {
+      setError('You must agree to the Terms of Use and Privacy Policy to continue.')
+      return
+    }
+
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
@@ -65,6 +71,8 @@ export default function SignupPage() {
           profession: form.profession,
           birth_month: birthMonth,
           birth_year: birthYear,
+          terms_accepted: form.terms_accepted,
+          newsletter_opted_in: form.newsletter_opted_in,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -80,6 +88,8 @@ export default function SignupPage() {
         profession: form.profession,
         birth_month: birthMonth,
         birth_year: birthYear,
+        terms_accepted: form.terms_accepted,
+        newsletter_opted_in: form.newsletter_opted_in,
       }).eq('id', data.user.id)
     }
 
@@ -197,18 +207,28 @@ export default function SignupPage() {
             </button>
           </div>
 
+          <label style={s.checkboxLabel}>
+            <input type="checkbox" style={s.checkbox} checked={form.terms_accepted}
+              onChange={e=>setForm(f=>({...f,terms_accepted:e.target.checked}))}/>
+            <span>
+              I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Terms of Use</a>
+              {' '}and{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Privacy Policy</a>
+            </span>
+          </label>
+
+          <label style={s.checkboxLabel}>
+            <input type="checkbox" style={s.checkbox} checked={form.newsletter_opted_in}
+              onChange={e=>setForm(f=>({...f,newsletter_opted_in:e.target.checked}))}/>
+            <span>I'd like to receive newsletters and updates from The Lounge Community</span>
+          </label>
+
           {error && <p style={{color:'#FF4D4D',fontSize:13,marginTop:10,padding:'8px 12px',background:'#FFE8E8',borderRadius:8,border:'1px solid #FF4D4D'}}>{error}</p>}
 
           <button style={{marginTop:20,width:'100%',background:'#F9C4A0',color:'#fff',border:'none',borderRadius:100,padding:'12px 0',fontSize:14,fontWeight:700,cursor:'pointer',opacity:loading?0.6:1,fontFamily:"'Syne',sans-serif"}} type="submit" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account →'}
           </button>
-
-          <p style={{fontSize:11,color:'#9E9587',textAlign:'center',marginTop:12,lineHeight:1.6}}>
-            By creating an account you agree to our{' '}
-            <a href="/terms" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Terms of Use</a>
-            {' '}and{' '}
-            <a href="/privacy" style={{color:'#7B5EA7',fontWeight:600,textDecoration:'none'}}>Privacy Policy</a>
-          </p>
         </form>
 
         <p style={{marginTop:16,fontSize:13,color:'#9E9587',textAlign:'center'}}>
@@ -227,4 +247,6 @@ const s: Record<string,React.CSSProperties> = {
   label:    { display:'block', fontSize:11, color:'#7B5EA7', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:6, marginTop:14, fontWeight:600 },
   input:    { width:'100%', background:'#FAFAF8', border:'2px solid #F9C4A0', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const },
   select:   { flex:1, background:'#FAFAF8', border:'2px solid #F9C4A0', borderRadius:100, padding:'10px 16px', fontSize:14, color:'#1A1208', outline:'none', boxSizing:'border-box' as const, fontFamily:"'Inter',sans-serif" },
+  checkboxLabel: { display:'flex', alignItems:'flex-start', gap:8, marginTop:14, fontSize:13, color:'#7B5EA7', fontFamily:"'Inter',sans-serif", lineHeight:1.5, cursor:'pointer' as const },
+  checkbox: { width:16, height:16, marginTop:1, flexShrink:0, accentColor:'#F9C4A0', cursor:'pointer' as const },
 }
