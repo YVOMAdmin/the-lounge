@@ -793,6 +793,8 @@ useEffect(() => {
 
       /* Sidebar */
 .rail-card{background:#fff;border:2px solid #F9C4A0;border-radius:14px;padding:16px;margin-bottom:12px}
+.rail-support-link{display:block;color:#7B5EA7;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-decoration:none}
+.rail-support-link:hover{text-decoration:underline}
 .rail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#F9C4A0;margin-bottom:10px}
 .rail-num{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:#F9C4A0;letter-spacing:-1px;line-height:1}
 .rail-sub{font-size:11px;color:#9E9587;margin-top:2px;margin-bottom:10px}
@@ -1139,6 +1141,9 @@ useEffect(() => {
               <div className="welcome-body">A <span className="welcome-hl">safe, closed space</span> to share, vent, and support each other. Your people. Your space. No judgement..</div>
             </div>
             <div className="rail-card">
+              <a href="/support" className="rail-support-link">Support Beyond Our Walls 🧡</a>
+            </div>
+            <div className="rail-card">
               <div className="rail-title">Right now</div>
               <div className="rail-num">3,104</div>
               <div className="rail-sub"><span className="live-dot"/>members online</div>
@@ -1197,6 +1202,8 @@ useEffect(() => {
           <a href="/terms" className="site-footer-link">Terms of Use</a>
           <span style={{color:"#D4CEC5"}}>·</span>
           <a href="mailto:hello@theloungecommunity.co.uk" className="site-footer-link">Contact</a>
+          <span style={{color:"#D4CEC5"}}>·</span>
+          <a href="/support" className="site-footer-link">Support Beyond Our Walls 🧡</a>
         </div>
       </footer>
 
