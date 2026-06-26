@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export const FOUNDER_LIMIT = 100
-const LOW_SPOTS_THRESHOLD = 4
+export const FOUNDER_LIMIT = 50
+const LOW_SPOTS_THRESHOLD = 5
 
 export async function getFounderCount(supabase: SupabaseClient): Promise<number> {
   const { count } = await supabase

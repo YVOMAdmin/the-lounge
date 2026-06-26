@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   const { userId } = await req.json()
 
   // Founder status is decided at approval time, not at signup — only
-  // approved members count toward the 100-founder cap.
+  // approved members count toward the founder cap (see FOUNDER_LIMIT).
   const founderCount = await getFounderCount(supabase)
   const isFounder = founderCount < FOUNDER_LIMIT
 
