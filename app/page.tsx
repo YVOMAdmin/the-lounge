@@ -28,7 +28,7 @@ const BENEFITS = [
 const FAQS = [
   { q: 'Who is The Lounge Community for?', a: 'The Lounge is built for Virtual Assistants, Executive Assistants, Personal Assistants, Office Managers, and Operations specialists. If you work in admin or executive support, this is your place.' },
   { q: 'How do I join?', a: 'Simply click "Come and Connect" and complete a short sign-up form. All new members are reviewed before being approved to keep the community safe and relevant.' },
-  { q: 'What happens after the Founders Offer ends?', a: "Your £2.00/month rate is locked in forever. You will never be moved to the full price — that's our promise to our founding members." },
+  { q: 'What happens after the Founders Offer ends?', a: "Membership is free for founders during our beta. When we launch publicly the price moves to £5.00/month — but as a founder, your access stays free forever. That's our promise to our founding members." },
   { q: 'Can I cancel my membership at any time?', a: 'Yes, absolutely. No contracts, no fuss. You can cancel whenever you like.' },
   { q: 'Can I promote my own services as a member?', a: 'Yes! Paid members can share and promote their own services and events within the community.' },
   { q: 'Is The Lounge moderated?', a: 'Yes. The Lounge is an actively moderated space. We want it to remain kind, supportive and professional for everyone.' },
@@ -197,7 +197,7 @@ export default function LandingPage() {
           <div className="pricing-grid">
             <div className="pricing-card">
               <div className="pricing-tier">Free</div>
-              <div className="pricing-price">£0 <span>/ month</span></div>
+              <div className="pricing-price">Free</div>
               <div className="pricing-feature">Events & networking (read only)</div>
               <div className="pricing-feature">Job Board (read only)</div>
               <div className="pricing-feature locked">Full Feed access (inc. polls & posts)</div>
@@ -207,8 +207,8 @@ export default function LandingPage() {
             </div>
             <div className="pricing-card paid">
               <div className="pricing-tier">Member</div>
-              <div className="pricing-price">£2.00 <span style={{textDecoration:'line-through', color:'#9E9587'}}>£5.00</span> <span>/ month</span></div>
-              <div style={{fontSize:11, color:'#7B5EA7', fontWeight:600, fontFamily:"'Inter',sans-serif", marginBottom:12, background:'rgba(255,255,255,0.5)', borderRadius:8, padding:'4px 8px', display:'inline-block'}}>🌟 Special Founders Offer — limited time only!</div>
+              <div className="pricing-price">£0 <span style={{textDecoration:'line-through', color:'#9E9587'}}>£5.00</span> <span>/ month</span></div>
+              <div style={{fontSize:11, color:'#7B5EA7', fontWeight:600, fontFamily:"'Inter',sans-serif", marginBottom:12, background:'rgba(255,255,255,0.5)', borderRadius:8, padding:'4px 8px', display:'inline-block'}}>🌟 Free during Beta — Founders Offer</div>
               <div className="pricing-feature">Events & networking</div>
               <div className="pricing-feature">Job Board</div>
               <div className="pricing-feature">Full Feed access (inc. polls & posts)</div>
@@ -217,7 +217,7 @@ export default function LandingPage() {
               <div className="pricing-feature">Promote your own services & events</div>
             </div>
           </div>
-          <div style={{fontSize:12, color:'#1A1208', fontFamily:"'Inter',sans-serif", lineHeight:1.7, marginTop:20, fontStyle:'italic', borderTop:'1px solid #F9C4A0', paddingTop:16, textAlign:'center'}}>🌟 Our Founders Offer is an exclusive rate for our very first members. Become part of the community for just £2.00/month and keep your founders status forever — limited spaces available.</div>
+          <div style={{fontSize:12, color:'#1A1208', fontFamily:"'Inter',sans-serif", lineHeight:1.7, marginTop:20, fontStyle:'italic', borderTop:'1px solid #F9C4A0', paddingTop:16, textAlign:'center'}}>🌟 Free for founders during beta — when we launch publicly the price moves to £5.00/month. Sign up now and keep your founders access free forever. Limited spaces available.</div>
         </div>
       </div>}
 
