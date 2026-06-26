@@ -77,7 +77,7 @@ export default function ContactPage() {
       </div>
 
       <div style={{maxWidth:560,margin:'0 auto',padding:'24px 24px 40px'}}>
-        <a href="/" style={{fontSize:12,color:'#9E9587',textDecoration:'none'}}>← Back to The Lounge</a>
+        <a href="/community" style={{fontSize:12,color:'#9E9587',textDecoration:'none'}}>← Back to The Lounge</a>
 
         <div style={{marginTop:24,marginBottom:32}}>
           <h1 style={{fontFamily:"'Lilita One',cursive",fontWeight:400,fontSize:28,color:'#7B5EA7',marginBottom:12,letterSpacing:'-0.01em'}}>Get in touch 🧡</h1>
