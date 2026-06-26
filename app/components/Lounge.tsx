@@ -320,6 +320,7 @@ const [isFounder, setIsFounder] = useState(false)
 const isAdmin = userEmail === 'hello@theloungecommunity.co.uk'
 const [notifications, setNotifications] = useState<any[]>([])
 const [showNotifications, setShowNotifications] = useState(false)
+const [menuOpen, setMenuOpen] = useState(false)
 const SUGGESTION_TYPES = [
   { id: 'feedback', label: 'Feedback', emoji: '💬' },
   { id: 'suggestion', label: 'Suggestion', emoji: '💡' },
@@ -635,8 +636,12 @@ useEffect(() => {
       .btn-icon-sm{background:transparent;color:#F9C4A0;border:1.5px solid #F9C4A0;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
       .btn-icon-sm:hover{background:#F9C4A0;color:#fff}
       .btn-icon-sm-solid{background:#F9C4A0;color:#fff;border:1.5px solid #F9C4A0;border-radius:100px;padding:3px 7px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;transition:background 0.15s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
-      .hdr-support-link{color:#7B5EA7;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;text-decoration:none;white-space:nowrap}
-      .hdr-support-link:hover{text-decoration:underline}
+      .hamburger-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:36px;height:36px;flex-shrink:0}
+      .hamburger-btn span{display:block;width:18px;height:2px;background:#7B5EA7;border-radius:2px}
+      .hdr-menu-dropdown{position:absolute;left:0;top:40px;width:220px;background:#fff;border:1px solid #E8E3DC;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:100;overflow:hidden}
+      .hdr-menu-link{display:block;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#1A1814;text-decoration:none;border-bottom:1px solid #F0EDE8}
+      .hdr-menu-link:last-child{border-bottom:none}
+      .hdr-menu-link:hover{color:#7B5EA7;background:#FAFAF8}
       .search-input{width:100%;background:#F0EDE8;border:1px solid #E2DDD6;border-radius:8px;color:#1A1814;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px 7px 34px;outline:none;transition:all 0.2s}
       .search-input:focus{background:#fff;border-color:#B8B0A4}
       .search-input::placeholder{color:#B8B0A4}
@@ -864,6 +869,17 @@ useEffect(() => {
       <header className="hdr">
         <div className="hdr-inner">
         <div className="hdr-row1">
+          <div style={{ position: 'relative' }}>
+            <button className="hamburger-btn" onClick={()=>setMenuOpen(!menuOpen)} aria-label="Open menu">
+              <span/><span/><span/>
+            </button>
+            {menuOpen && (
+              <div className="hdr-menu-dropdown">
+                <a href="/support" className="hdr-menu-link" onClick={()=>setMenuOpen(false)}>Support Beyond Our Walls 🧡</a>
+                <a href="/contact" className="hdr-menu-link" onClick={()=>setMenuOpen(false)}>✉️ Contact Us</a>
+              </div>
+            )}
+          </div>
           <div className="search-wrap">
             <span className="search-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -910,7 +926,6 @@ useEffect(() => {
   </a>
 )}
           <button className="btn-icon-sm" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/auth/login'; }}>Log out</button>
-          <a href="/support" className="hdr-support-link">Support Beyond Our Walls 🧡</a>
         </div>
         <div className="hdr-row2">
 <a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
