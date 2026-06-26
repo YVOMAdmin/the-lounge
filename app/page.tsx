@@ -86,9 +86,9 @@ export default function LandingPage() {
         @keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
         .ticker-seg { display: flex; align-items: center; padding: 0 24px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; white-space: nowrap; height: 34px; }
 
-        .nav { position: sticky; top: 0; z-index: 100; background: #F5F0E8; border-bottom: 2px solid #F9C4A0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
-        .hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 4px; }
-        .hamburger span { display: block; width: 24px; height: 2px; background: #7B5EA7; border-radius: 2px; }
+        .nav { position: sticky; top: 0; z-index: 100; background: #F5F0E8; border-bottom: 2px solid #F9C4A0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; overflow: visible; }
+        .hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 44px; height: 44px; min-width: 44px; flex-shrink: 0; position: relative; z-index: 10; }
+        .hamburger span { display: block; width: 24px; height: 3px; background: #7B5EA7; border-radius: 2px; }
 
         .btn-outline { background: transparent; color: #F9C4A0; border: 2px solid #F9C4A0; border-radius: 100px; padding: 6px 16px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-block; }
         .btn-outline:hover { background: #F9C4A0; color: #1A1208; }
