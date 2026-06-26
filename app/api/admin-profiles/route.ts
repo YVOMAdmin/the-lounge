@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { FOUNDER_LIMIT, getFounderCount } from '@/lib/founders'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -37,9 +38,14 @@ export async function POST(req: Request) {
 
   const { userId } = await req.json()
 
+  // Founder status is decided at approval time, not at signup — only
+  // approved members count toward the 100-founder cap.
+  const founderCount = await getFounderCount(supabase)
+  const isFounder = founderCount < FOUNDER_LIMIT
+
   const { error } = await supabase
     .from('profiles')
-    .update({ is_approved: true })
+    .update({ is_approved: true, is_founder: isFounder })
     .eq('id', userId)
 
   if (error) {

@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+type FounderStatus = { status: 'available' } | { status: 'low'; remaining: number } | { status: 'full' };
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Inter:wght@400;500;600&display=swap');`;
 
@@ -63,6 +65,14 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [founderStatus, setFounderStatus] = useState<FounderStatus>({ status: 'available' });
+
+  useEffect(() => {
+    fetch('/api/founder-count')
+      .then(res => res.json())
+      .then(data => setFounderStatus(data))
+      .catch(() => {});
+  }, []);
 
   return (
     <>
@@ -207,8 +217,16 @@ export default function LandingPage() {
             </div>
             <div className="pricing-card paid">
               <div className="pricing-tier">Member</div>
-              <div className="pricing-price">£0 <span style={{textDecoration:'line-through', color:'#9E9587'}}>£5.00</span> <span>/ month</span></div>
-              <div style={{fontSize:11, color:'#7B5EA7', fontWeight:600, fontFamily:"'Inter',sans-serif", marginBottom:12, background:'rgba(255,255,255,0.5)', borderRadius:8, padding:'4px 8px', display:'inline-block'}}>🌟 Free during Beta — Founders Offer</div>
+              {founderStatus.status === 'full' ? (
+                <div className="pricing-price">£5.00 <span>/ month</span></div>
+              ) : (
+                <div className="pricing-price">£0 <span style={{textDecoration:'line-through', color:'#9E9587'}}>£5.00</span> <span>/ month</span></div>
+              )}
+              {founderStatus.status !== 'full' && (
+                <div style={{fontSize:11, color:'#7B5EA7', fontWeight:600, fontFamily:"'Inter',sans-serif", marginBottom:12, background:'rgba(255,255,255,0.5)', borderRadius:8, padding:'4px 8px', display:'inline-block'}}>
+                  {founderStatus.status === 'low' ? `🌟 Only ${founderStatus.remaining} founder spot${founderStatus.remaining===1?'':'s'} remaining!` : '🌟 Free during Beta — Founders Offer'}
+                </div>
+              )}
               <div className="pricing-feature">Events & networking</div>
               <div className="pricing-feature">Job Board</div>
               <div className="pricing-feature">Full Feed access (inc. polls & posts)</div>
@@ -217,7 +235,13 @@ export default function LandingPage() {
               <div className="pricing-feature">Promote your own services & events</div>
             </div>
           </div>
-          <div style={{fontSize:12, color:'#1A1208', fontFamily:"'Inter',sans-serif", lineHeight:1.7, marginTop:20, fontStyle:'italic', borderTop:'1px solid #F9C4A0', paddingTop:16, textAlign:'center'}}>🌟 Free for founders during beta — when we launch publicly the price moves to £5.00/month. Sign up now and keep your founders access free forever. Limited spaces available.</div>
+          {founderStatus.status !== 'full' && (
+            <div style={{fontSize:12, color:'#1A1208', fontFamily:"'Inter',sans-serif", lineHeight:1.7, marginTop:20, fontStyle:'italic', borderTop:'1px solid #F9C4A0', paddingTop:16, textAlign:'center'}}>
+              {founderStatus.status === 'low'
+                ? `🌟 Only ${founderStatus.remaining} founder spot${founderStatus.remaining===1?'':'s'} remaining! Sign up now to lock in free access forever before spots run out.`
+                : '🌟 Free for founders during beta — when we launch publicly the price moves to £5.00/month. Sign up now and keep your founders access free forever. Limited spaces available.'}
+            </div>
+          )}
         </div>
       </div>}
 
