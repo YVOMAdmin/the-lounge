@@ -149,7 +149,7 @@ function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
 }
 
 type ReplyItemProps = {
-  r: any; postId: any; myAvatar: string;
+  r: any; postId: any; myAvatar: string; myName: string; isAdmin: boolean;
   likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any; expandedReplies: Set<any>;
   onToggleReplyLike: (postId: any, replyId: any) => void;
   onToggleReplyInput: (replyId: any, name: string) => void;
@@ -158,7 +158,7 @@ type ReplyItemProps = {
   onToggleExpanded: (replyId: any) => void;
 };
 
-const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: ReplyItemProps) {
+const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, myName, isAdmin, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: ReplyItemProps) {
   const isLiked = likedReplies.has(r.id);
   const likeCount = r.likes || 0;
   const inputOpen = openReplyInputs.has(r.id);
@@ -169,7 +169,7 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
     <div className="reply">
       <div className="reply-avi">{r.avatar}</div>
       <div className="reply-body">
-        <span className="reply-who">{r.name}</span>
+        <span className="reply-who">{r.name}{isAdmin&&r.name===myName&&<span className="admin-badge">Admin</span>}</span>
         <span className="reply-loc">{r.loc} · {r.time}</span>
         <div className="reply-text">{r.text}</div>
         <div className="reply-actions">
@@ -198,7 +198,7 @@ const ReplyItem = memo(function ReplyItem({ r, postId, myAvatar, likedReplies, o
         {childReplies.length>0 && isExpanded && (
           <div className="nested-replies">
             {childReplies.map((child:any)=>(
-              <ReplyItem key={child.id} r={child} postId={postId} myAvatar={myAvatar}
+              <ReplyItem key={child.id} r={child} postId={postId} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin}
                 likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                 onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
                 onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
@@ -220,8 +220,8 @@ const ReplyBlock = memo(function ReplyBlock({ p, isOpen, onToggle }: { p: any; i
   );
 });
 
-const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, isOpen, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: {
-  p: any; myAvatar: string; isOpen: boolean;
+const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, myName, isAdmin, isOpen, draft, onDraftChange, onSubmit, likedReplies, openReplyInputs, nestedReplyDrafts, expandedReplies, onToggleReplyLike, onToggleReplyInput, onNestedDraftChange, onSubmitNestedReply, onToggleExpanded }: {
+  p: any; myAvatar: string; myName: string; isAdmin: boolean; isOpen: boolean;
   draft: string; onDraftChange: (value: string) => void; onSubmit: () => void;
   likedReplies: Set<any>; openReplyInputs: Set<any>; nestedReplyDrafts: any; expandedReplies: Set<any>;
   onToggleReplyLike: (postId: any, replyId: any) => void;
@@ -246,7 +246,7 @@ const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, isOpen, draft, 
       {isOpen && (p.replies||[]).length>0 && (
         <div className="replies">
           {(p.replies||[]).map((r:any)=>(
-            <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar}
+            <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin}
               likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
               onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
               onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
@@ -316,6 +316,7 @@ export default function Lounge() {
   const [myName]   = useState("You");
   const [myLoc]    = useState("GMT");
 const [userEmail, setUserEmail] = useState<string | null>(null)
+const isAdmin = userEmail === 'hello@theloungecommunity.co.uk'
 const [notifications, setNotifications] = useState<any[]>([])
 const [showNotifications, setShowNotifications] = useState(false)
 const SUGGESTION_TYPES = [
@@ -667,6 +668,7 @@ useEffect(() => {
       .card-who{display:flex;align-items:center;gap:10px}
       .avi{width:36px;height:36px;border-radius:10px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
       .who-name{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:#1A1814}
+      .admin-badge{display:inline-block;background:#7B5EA7;color:#fff;font-family:'Inter',sans-serif;font-weight:600;font-size:10px;padding:2px 8px;border-radius:100px;margin-left:6px;vertical-align:middle;line-height:1.4}
       .who-meta{font-size:11px;color:#9E9587;margin-top:1px}
       .badge-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
       .cat-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
@@ -941,7 +943,7 @@ useEffect(() => {
                   return(
                     <div key={p.id} className="card poll-card">
                       <div className="card-top">
-                        <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
+                        <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}{isAdmin&&p.name===myName&&<span className="admin-badge">Admin</span>}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
                         <span className="poll-badge">📊 Poll</span>
                       </div>
                       <div className="poll-q">{p.question}</div>
@@ -958,7 +960,7 @@ useEffect(() => {
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
                       <div className="card-foot"><ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/></div>
-                      <CommentsPanel p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      <CommentsPanel p={p} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
                       likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
                       onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
@@ -970,7 +972,7 @@ useEffect(() => {
                 return(
                   <div key={p.id} className={`card ${p.category}`}>
                     <div className="card-top">
-                      <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
+                      <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}{isAdmin&&p.name===myName&&<span className="admin-badge">Admin</span>}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
                       <div className="badge-wrap">
                         <span className="cat-badge" style={{background:`${cat.color}15`,color:cat.color,border:`1px solid ${cat.color}2A`}}>{cat.emoji} {cat.label}</span>
                         {p.hot&&<span className="hot">HOT</span>}
@@ -987,7 +989,7 @@ useEffect(() => {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
                     </div>
-                    <CommentsPanel p={p} myAvatar={myAvatar} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                    <CommentsPanel p={p} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
                       likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
                       onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
@@ -1129,7 +1131,7 @@ useEffect(() => {
           {/* Sidebar */}
           <aside className="rail">
             <div className="welcome">
-              <div className="welcome-head">Hey {myAvatar} {myName}</div>
+              <div className="welcome-head">Hey {myAvatar} {myName}{isAdmin&&<span className="admin-badge">Admin</span>}</div>
               <div className="welcome-body">A <span className="welcome-hl">safe, closed space</span> to share, vent, and support each other. Your people. Your space. No judgement..</div>
             </div>
             <div className="rail-card">
@@ -1198,7 +1200,7 @@ useEffect(() => {
       {compose&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setCompose(false)}>
         <div className="modal">
           <div className="modal-title">What's going on?</div>
-          <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
+          <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName}{isAdmin&&<span className="admin-badge">Admin</span>} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
           <textarea style={{minHeight:140}} placeholder="Tell the group what's really going on..." value={draft.content} onChange={(e:any)=>setDraft((d:any)=>({...d,content:e.target.value}))}/>
           <div className="cats">{CATEGORIES.map((c:any)=>(<button key={c.id} className={`cat-opt ${draft.category===c.id?"sel":""}`} onClick={()=>setDraft((d:any)=>({...d,category:c.id}))}>{c.emoji} {c.label}</button>))}</div>
           <div className="modal-foot"><button className="btn-cancel" onClick={()=>setCompose(false)}>Cancel</button><button className="btn-submit" onClick={submitPost} disabled={!draft.content.trim()}>Post</button></div>
@@ -1209,7 +1211,7 @@ useEffect(() => {
       {composePoll&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setComposePoll(false)}>
         <div className="modal">
           <div className="modal-title">Create a Poll</div>
-          <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
+          <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName}{isAdmin&&<span className="admin-badge">Admin</span>} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
           <div className="section-label">Your question</div>
           <input className="input-field" placeholder="Ask the community something..." value={pollDraft.question} onChange={(e:any)=>setPollDraft((d:any)=>({...d,question:e.target.value}))}/>
           <div className="section-label">Options</div>
@@ -1232,7 +1234,7 @@ useEffect(() => {
           ):(
             <>
               <div className="modal-title">Host an Event</div>
-              <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName} · {myLoc}</div><div className="compose-sub">Submitted for admin approval</div></div></div>
+              <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName}{isAdmin&&<span className="admin-badge">Admin</span>} · {myLoc}</div><div className="compose-sub">Submitted for admin approval</div></div></div>
               <div className="section-label">Event type</div>
               <div className="cats">
                 {EVENT_TYPES.map((t:any)=>(<button key={t.id} className={`cat-opt ${eventDraft.type===t.id?"sel":""}`} onClick={()=>setEventDraft((d:any)=>({...d,type:t.id}))}>{t.emoji} {t.label}</button>))}
