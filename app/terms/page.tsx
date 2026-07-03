@@ -21,6 +21,10 @@ export default function TermsPage() {
           <p style={styles.mt}>By creating an account and using The Lounge, you agree to these Terms in full. These Terms are governed by the laws of England and Wales.</p>
         </Section>
 
+        <Section title="Disclaimer of Liability">
+          <p>The content shared by members on The Lounge Community platform, including advice, opinions, and experiences, is provided for informational and peer support purposes only. It does not constitute professional legal, financial, medical, HR or any other professional advice. Your Virtual Office Manager Ltd and The Lounge Community accept no responsibility or liability for any actions taken based on content shared by members. Always seek professional advice where appropriate.</p>
+        </Section>
+
         <Section title="2. What The Lounge Is">
           <p>The Lounge is a private, approval-based online community for administrative and executive support professionals — remote or office-based. It is a space to share experiences, seek advice, vent, celebrate wins, and connect with others who understand the realities of the work you do.</p>
           <p style={styles.mt}>The Lounge is not a public forum. Access is restricted to approved members only.</p>
