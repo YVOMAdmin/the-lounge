@@ -28,6 +28,10 @@ const EVENT_TYPES = [
   { id: "social",     label: "Social Events",   emoji: "🎉", color: "#E91E8C" },
 ];
 
+const MAX_POST_IMAGES = 4;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
 const AVATARS = ["📋","🗂","📌","☕","🖨","📎","📁","✉️","🗓","💼"];
 const FIRST   = ["Diane","Karen","Priya","Chloe","Nadia","Ruth","Bex","Simone","Tara","Mel"];
 const LOCS    = ["EST","GMT","PST","AEST","CET","GMT-5","IST","GMT+8","CST","MST"];
@@ -293,6 +297,11 @@ export default function Lounge() {
   const [search, setSearch]           = useState("");
   const [compose, setCompose]         = useState(false);
   const [draft, setDraft]             = useState({content:"",category:"rant"});
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews]   = useState<string[]>([]);
+  const [imageError, setImageError]   = useState<string|null>(null);
+  const [posting, setPosting]         = useState(false);
+  const fileInputRef = useRef<HTMLInputElement|null>(null);
   const [composePoll, setComposePoll] = useState(false);
   const [pollDraft, setPollDraft]     = useState({question:"",options:["","",""]});
   const [liked, setLiked]             = useState(new Set<any>());
@@ -396,10 +405,52 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setVotedPolls((prev:any)=>({...prev,[pollId]:optId}));
     setPosts((prev:any)=>prev.map((p:any)=>p.id!==pollId?p:{...p,options:p.options.map((o:any)=>o.id===optId?{...o,votes:o.votes+1}:o)}));
   };
-  const submitPost=()=>{
+  const handleImageSelect = (e:any) => {
+    const files: File[] = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!files.length) return;
+    setImageError(null);
+    const valid: File[] = [];
+    for (const f of files) {
+      if (!ALLOWED_IMAGE_TYPES.includes(f.type)) { setImageError("Only JPG, PNG, GIF and WEBP images are allowed"); continue; }
+      if (f.size > MAX_IMAGE_SIZE) { setImageError("Each image must be under 5MB"); continue; }
+      valid.push(f);
+    }
+    setSelectedImages((prev:File[])=>{
+      const room = MAX_POST_IMAGES - prev.length;
+      if (valid.length > room) setImageError(`You can only attach up to ${MAX_POST_IMAGES} images`);
+      return [...prev, ...valid.slice(0, Math.max(room,0))];
+    });
+  };
+  const removeSelectedImage = (index:number) => {
+    setSelectedImages((prev:File[])=>prev.filter((_,i)=>i!==index));
+  };
+  const closeCompose = () => {
+    setCompose(false); setSelectedImages([]); setImageError(null);
+  };
+  useEffect(()=>{
+    const urls = selectedImages.map((f:File)=>URL.createObjectURL(f));
+    setImagePreviews(urls);
+    return ()=>{ urls.forEach((u:string)=>URL.revokeObjectURL(u)); };
+  },[selectedImages]);
+  const submitPost=async()=>{
     if(!draft.content.trim())return;
-    setPosts((prev:any)=>[{id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,category:draft.category,time:"just now",content:draft.content,likes:0,replies:[]},...prev]);
-    setDraft({content:"",category:"rant"});setCompose(false);showToast("Posted to The Lounge ✓");
+    setPosting(true);
+    let imageUrls: string[] = [];
+    if (selectedImages.length) {
+      const formData = new FormData();
+      selectedImages.forEach((f:File)=>formData.append("images", f));
+      try {
+        const res = await fetch("/api/upload-image", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) { setImageError(data.error || "Failed to upload images"); setPosting(false); return; }
+        imageUrls = data.urls || [];
+      } catch {
+        setImageError("Failed to upload images"); setPosting(false); return;
+      }
+    }
+    setPosts((prev:any)=>[{id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,category:draft.category,time:"just now",content:draft.content,images:imageUrls,likes:0,replies:[]},...prev]);
+    setDraft({content:"",category:"rant"});setSelectedImages([]);setCompose(false);setPosting(false);showToast("Posted to The Lounge ✓");
   };
   const submitPoll=()=>{
     const opts=pollDraft.options.filter((o:string)=>o.trim());
@@ -839,6 +890,16 @@ useEffect(() => {
 .btn-submit:disabled{opacity:0.3;cursor:default}
       .section-label{font-size:11px;color:#9E9587;letter-spacing:1.2px;text-transform:uppercase;margin:14px 0 7px}
       .add-opt-btn{background:none;border:1px dashed #D4CEC5;border-radius:8px;color:#9E9587;font-size:12px;padding:8px;width:100%;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
+      .photo-upload-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+      .photo-upload-count{font-size:11px;color:#9E9587}
+      .photo-upload-error{font-size:12px;color:#F4622A;margin-top:6px}
+      .image-preview-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+      .image-preview-item{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #E2DDD6;flex-shrink:0}
+      .image-preview-item img{width:100%;height:100%;object-fit:cover;display:block}
+      .image-preview-remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(26,24,20,0.7);color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+      .post-images-grid{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px;border-radius:12px;overflow:hidden}
+      .post-images-grid.grid-2{grid-template-columns:1fr 1fr}
+      .post-images-grid img{width:100%;height:100%;object-fit:cover;display:block;max-height:320px}
       .approval-note{background:#FEF9ED;border:1px solid #F5E4A0;border-radius:8px;padding:10px 14px;font-size:12px;color:#8A6F20;margin-top:14px;line-height:1.5}
       .dropin-toggle{display:flex;align-items:center;gap:10px;margin-top:10px;cursor:pointer;user-select:none}
       .dropin-toggle input{width:16px;height:16px;cursor:pointer}
@@ -1003,6 +1064,11 @@ useEffect(() => {
                       </div>
                     </div>
                     <div className="card-body">{p.content}</div>
+                    {p.images&&p.images.length>0&&(
+                      <div className={`post-images-grid ${p.images.length>1?"grid-2":""}`}>
+                        {p.images.map((src:string,i:number)=>(<img key={i} src={src} alt=""/>))}
+                      </div>
+                    )}
                     <div className="card-foot">
                       <button className={`act ${isLiked?"on":""}`} onClick={()=>toggleLike(p.id)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1226,13 +1292,29 @@ useEffect(() => {
       </footer>
 
       {/* Compose Post */}
-      {compose&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setCompose(false)}>
+      {compose&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&closeCompose()}>
         <div className="modal">
           <div className="modal-title">What's going on?</div>
           <div className="modal-who"><div className="avi">{myAvatar}</div><div><div className="compose-name">{myName}{isAdmin&&<span className="admin-badge">Admin</span>}{isFounder&&<span className="founder-badge">🌟 Founder</span>} · {myLoc}</div><div className="compose-sub">Posting to The Lounge</div></div></div>
           <textarea style={{minHeight:140}} placeholder="Tell the group what's really going on..." value={draft.content} onChange={(e:any)=>setDraft((d:any)=>({...d,content:e.target.value}))}/>
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple style={{display:"none"}} onChange={handleImageSelect}/>
+          <div className="photo-upload-row">
+            <button type="button" className="btn-icon" onClick={()=>fileInputRef.current?.click()} disabled={selectedImages.length>=MAX_POST_IMAGES}>📷 Add Photos</button>
+            <span className="photo-upload-count">{selectedImages.length}/{MAX_POST_IMAGES}</span>
+          </div>
+          {imageError&&<div className="photo-upload-error">{imageError}</div>}
+          {imagePreviews.length>0&&(
+            <div className="image-preview-grid">
+              {imagePreviews.map((src:string,i:number)=>(
+                <div key={i} className="image-preview-item">
+                  <img src={src} alt=""/>
+                  <button type="button" className="image-preview-remove" onClick={()=>removeSelectedImage(i)}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="cats">{CATEGORIES.map((c:any)=>(<button key={c.id} className={`cat-opt ${draft.category===c.id?"sel":""}`} onClick={()=>setDraft((d:any)=>({...d,category:c.id}))}>{c.emoji} {c.label}</button>))}</div>
-          <div className="modal-foot"><button className="btn-cancel" onClick={()=>setCompose(false)}>Cancel</button><button className="btn-submit" onClick={submitPost} disabled={!draft.content.trim()}>Post</button></div>
+          <div className="modal-foot"><button className="btn-cancel" onClick={closeCompose}>Cancel</button><button className="btn-submit" onClick={submitPost} disabled={!draft.content.trim()||posting}>{posting?"Posting...":"Post"}</button></div>
         </div>
       </div>}
 
