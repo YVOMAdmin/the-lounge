@@ -151,6 +151,17 @@ function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
     return r;
   });
 }
+function collectLikedReplies(posts: any[], likedReplies: Set<any>): {postId:any,postPreview:string,reply:any}[] {
+  const result: {postId:any,postPreview:string,reply:any}[] = [];
+  const walk = (replies: any[], postId: any, preview: string) => {
+    (replies||[]).forEach((r:any) => {
+      if (likedReplies.has(r.id)) result.push({ postId, postPreview: preview, reply: r });
+      if (r.replies && r.replies.length) walk(r.replies, postId, preview);
+    });
+  };
+  posts.forEach((p:any) => walk(p.replies, p.id, p.content || p.question || ""));
+  return result;
+}
 
 type ReplyItemProps = {
   r: any; postId: any; myAvatar: string; myName: string; isAdmin: boolean; isFounder: boolean;
@@ -321,13 +332,24 @@ export default function Lounge() {
   const [submittedEvent, setSubmittedEvent] = useState(false);
   const [rsvpd, setRsvpd]             = useState(new Set<any>());
   const [eventDraft, setEventDraft]   = useState({title:"",type:"coffee",date:"",time:"",timezone:"GMT",duration:60,description:"",link:"",dropIn:false});
-  const [myAvatar] = useState("☕");
-  const [myName]   = useState("You");
-  const [myLoc]    = useState("GMT");
+  const [myAvatar, setMyAvatar] = useState("☕");
+  const [myName, setMyName]     = useState("You");
+  const [myLoc, setMyLoc]       = useState("GMT");
 const [userEmail, setUserEmail] = useState<string | null>(null)
+const [userId, setUserId] = useState<string | null>(null)
 const [isFounder, setIsFounder] = useState(false)
 const isAdmin = userEmail === 'hello@theloungecommunity.co.uk'
 const [notifications, setNotifications] = useState<any[]>([])
+const [notifPref, setNotifPref] = useState<boolean>(() => {
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem('lounge_notif_pref') !== 'false';
+})
+const [settingsOpen, setSettingsOpen] = useState(false)
+const [likesOpen, setLikesOpen] = useState(false)
+const [viewFilter, setViewFilter] = useState<'all'|'mine'|'liked'>('all')
+const [profileForm, setProfileForm] = useState({username:"",location:""})
+const [savingProfile, setSavingProfile] = useState(false)
+const [newsletterOptedIn, setNewsletterOptedIn] = useState(false)
 const [showNotifications, setShowNotifications] = useState(false)
 const [menuOpen, setMenuOpen] = useState(false)
 const SUGGESTION_TYPES = [
@@ -344,12 +366,16 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
 
   const feed = useMemo(()=>{
     let list = filter==="all" ? posts : posts.filter((p:any)=>p.category===filter||p.type==="poll");
+    if (viewFilter==="mine") list = list.filter((p:any)=>p.name===myName);
+    if (viewFilter==="liked") list = list.filter((p:any)=>p.type!=="poll"&&liked.has(p.id));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((p:any)=>(p.content&&p.content.toLowerCase().includes(q))||(p.question&&p.question.toLowerCase().includes(q))||(p.name&&p.name.toLowerCase().includes(q)));
     }
     return list;
-  },[posts,filter,search]);
+  },[posts,filter,search,viewFilter,liked,myName]);
+  const likedPostsList = useMemo(()=>posts.filter((p:any)=>p.type!=="poll"&&liked.has(p.id)),[posts,liked]);
+  const likedCommentsList = useMemo(()=>collectLikedReplies(posts, likedReplies),[posts,likedReplies]);
 
   const daysInMonth  = (m:number,y:number) => new Date(y,m+1,0).getDate();
   const firstDayOfMonth = (m:number,y:number) => new Date(y,m,1).getDay();
@@ -508,16 +534,48 @@ if (!session) { window.location.href = '/auth/login'; return; }
   setComposeEvent(false);
   showToast("Event submitted for approval");
 };
+const saveProfile = async () => {
+  if (!userId) return;
+  setSavingProfile(true);
+  const username = profileForm.username.trim();
+  const location = profileForm.location.trim();
+  const { error } = await supabase.from('profiles').update({ username, location }).eq('id', userId);
+  if (!error) {
+    if (username) setMyName(username);
+    if (location) setMyLoc(location);
+    showToast("Profile updated ✓");
+  } else {
+    showToast("Failed to update profile");
+  }
+  setSavingProfile(false);
+};
+const saveAvatar = async (emoji: string) => {
+  if (!userId) return;
+  setMyAvatar(emoji);
+  const { error } = await supabase.from('profiles').update({ avatar_emoji: emoji }).eq('id', userId);
+  if (error) showToast("Failed to update avatar");
+};
+const toggleNewsletter = async (checked: boolean) => {
+  setNewsletterOptedIn(checked);
+  if (!userId) return;
+  const { error } = await supabase.from('profiles').update({ newsletter_opted_in: checked }).eq('id', userId);
+  if (error) showToast("Failed to update preference");
+};
+const toggleNotifPref = (checked: boolean) => {
+  setNotifPref(checked);
+  if (typeof window !== 'undefined') localStorage.setItem('lounge_notif_pref', checked ? 'true' : 'false');
+};
 useEffect(() => {
   async function checkApproval() {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       setUserEmail(session.user.email ?? null)
-      fetchNotifications(session.user.id)
+      setUserId(session.user.id)
+      if (notifPref) fetchNotifications(session.user.id)
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_approved, is_founder')
+        .select('is_approved, is_founder, username, avatar_emoji, location, newsletter_opted_in')
         .eq('id', session.user.id)
         .single()
       if (profile && !profile.is_approved) {
@@ -525,7 +583,14 @@ useEffect(() => {
 window.location.href = '/auth/pending'
         return
       }
-      if (profile) setIsFounder(!!profile.is_founder)
+      if (profile) {
+        setIsFounder(!!profile.is_founder)
+        setMyName(profile.username || "You")
+        setMyAvatar(profile.avatar_emoji || "☕")
+        setMyLoc(profile.location || "GMT")
+        setProfileForm({ username: profile.username || "", location: profile.location || "" })
+        setNewsletterOptedIn(!!profile.newsletter_opted_in)
+      }
     }
   }
   async function fetchNotifications(userId: string) {
@@ -871,6 +936,16 @@ useEffect(() => {
       .modal{background:#fff;border:1px solid #E8E3DC;border-radius:18px;width:100%;max-width:540px;padding:26px;animation:su 0.2s ease;box-shadow:0 24px 80px rgba(0,0,0,0.12);max-height:90vh;overflow-y:auto}
       @keyframes su{from{opacity:0;transform:translateY(14px)}}
       .modal-title{font-family:'Fraunces',serif;font-weight:700;font-size:19px;color:#1A1814;margin-bottom:18px}
+      .modal-title-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+      .modal-title-row .modal-title{margin-bottom:0}
+      .modal-close{background:none;border:none;font-size:15px;color:#9E9587;cursor:pointer;line-height:1;padding:4px;flex-shrink:0}
+      .modal-close:hover{color:#1A1814}
+      .settings-link{display:inline-block;font-size:13px;color:#7B5EA7;font-weight:600;text-decoration:none;margin-bottom:14px}
+      .settings-link:hover{text-decoration:underline}
+      .settings-quick-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+      .view-filter-banner{display:flex;align-items:center;justify-content:space-between;background:#FEF0EB;border:1px solid #FACDB8;border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:12px;font-weight:600;color:#F4622A;font-family:'Inter',sans-serif}
+      .view-filter-banner button{background:none;border:none;color:#F4622A;font-weight:600;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif}
+      .no-liked-item{font-size:13px;color:#9E9587;font-style:italic;margin-bottom:14px}
       .modal-who{display:flex;align-items:center;gap:10px;margin-bottom:14px}
       .compose-name{font-family:'Fraunces',serif;font-weight:600;font-size:14px}
       .compose-sub{font-size:11px;color:#9E9587}
@@ -981,6 +1056,8 @@ useEffect(() => {
     </div>
   )}
 </div>
+          <button className="btn-icon-sm" onClick={()=>setLikesOpen(true)} aria-label="Your likes">❤️</button>
+          <button className="btn-icon-sm" onClick={()=>setSettingsOpen(true)} aria-label="Settings">⚙️</button>
           {userEmail === 'hello@theloungecommunity.co.uk' && (
   <a href="/admin" className="btn-icon-sm-solid" style={{ textDecoration: 'none' }}>
     ← Admin
@@ -1012,6 +1089,12 @@ useEffect(() => {
 
             {/* ── FEED ── */}
             {activeTab==="feed"&&<>
+              {viewFilter!=="all"&&(
+                <div className="view-filter-banner">
+                  <span>Showing: {viewFilter==="mine"?"📝 My Posts":"❤️ My Liked Posts"}</span>
+                  <button onClick={()=>setViewFilter("all")}>✕ Clear</button>
+                </div>
+              )}
               <div className="filters">
                 <button className={`chip ${filter==="all"?"on":""}`} onClick={()=>setFilter("all")}>All</button>
                 {CATEGORIES.map((c:any)=>(
@@ -1384,6 +1467,83 @@ useEffect(() => {
               </div>
             </>
           )}
+        </div>
+      </div>}
+
+      {/* Settings */}
+      {settingsOpen&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setSettingsOpen(false)}>
+        <div className="modal">
+          <div className="modal-title-row">
+            <div className="modal-title">⚙️ Settings</div>
+            <button className="modal-close" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button>
+          </div>
+
+          <div className="section-label" style={{marginTop:0}}>Change Password</div>
+          <a href="/auth/forgot-password" className="settings-link">🔑 Reset your password →</a>
+
+          <div className="section-label">Update Profile</div>
+          <input className="input-field" placeholder="Display name" value={profileForm.username} onChange={(e:any)=>setProfileForm((f:any)=>({...f,username:e.target.value}))}/>
+          <input className="input-field" placeholder="Location (e.g. GMT)" value={profileForm.location} onChange={(e:any)=>setProfileForm((f:any)=>({...f,location:e.target.value}))}/>
+          <button className="btn-submit" style={{marginBottom:8}} onClick={saveProfile} disabled={savingProfile}>{savingProfile?"Saving...":"Save Profile"}</button>
+
+          <div className="section-label">Change Avatar</div>
+          <div className="cats" style={{marginBottom:8}}>
+            {AVATARS.map((a:string)=>(<button key={a} className={`cat-opt ${myAvatar===a?"sel":""}`} onClick={()=>saveAvatar(a)}>{a}</button>))}
+          </div>
+
+          <div className="section-label">Communication Preferences</div>
+          <label className="dropin-toggle">
+            <input type="checkbox" checked={notifPref} onChange={(e:any)=>toggleNotifPref(e.target.checked)}/>
+            <span className="dropin-toggle-label">🔔 Enable notifications</span>
+          </label>
+          <label className="dropin-toggle" style={{marginTop:8}}>
+            <input type="checkbox" checked={newsletterOptedIn} onChange={(e:any)=>toggleNewsletter(e.target.checked)}/>
+            <span className="dropin-toggle-label">✉️ Newsletter &amp; updates</span>
+          </label>
+
+          <div className="section-label">Quick Views</div>
+          <div className="settings-quick-row">
+            <button className="btn-icon" onClick={()=>{setViewFilter("mine");setActiveTab("feed");setSettingsOpen(false);}}>📝 My Posts</button>
+            <button className="btn-icon" onClick={()=>{setViewFilter("liked");setActiveTab("feed");setSettingsOpen(false);}}>❤️ My Liked Posts</button>
+          </div>
+
+          <div className="modal-foot"><button className="btn-cancel" onClick={()=>setSettingsOpen(false)}>Close</button></div>
+        </div>
+      </div>}
+
+      {/* Likes panel */}
+      {likesOpen&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setLikesOpen(false)}>
+        <div className="modal">
+          <div className="modal-title-row">
+            <div className="modal-title">❤️ Your Likes</div>
+            <button className="modal-close" onClick={()=>setLikesOpen(false)} aria-label="Close">✕</button>
+          </div>
+
+          <div className="section-label" style={{marginTop:0}}>Liked Posts</div>
+          {likedPostsList.length===0?(
+            <div className="no-liked-item">No liked posts yet</div>
+          ):likedPostsList.map((p:any)=>(
+            <div key={p.id} className="resource-card" style={{cursor:"default"}}>
+              <div className="avi">{p.avatar}</div>
+              <div><div className="who-name">{p.name}</div><div className="card-body" style={{fontSize:13,marginTop:4}}>{p.content}</div></div>
+            </div>
+          ))}
+
+          <div className="section-label">Liked Comments</div>
+          {likedCommentsList.length===0?(
+            <div className="no-liked-item">No liked comments yet</div>
+          ):likedCommentsList.map((item:any,i:number)=>(
+            <div key={i} className="reply" style={{marginBottom:14}}>
+              <div className="reply-avi">{item.reply.avatar}</div>
+              <div className="reply-body">
+                <span className="reply-who">{item.reply.name}</span>
+                <div className="reply-text">{item.reply.text}</div>
+                <div style={{fontSize:11,color:"#9E9587",marginTop:4}}>on: &ldquo;{item.postPreview.slice(0,60)}{item.postPreview.length>60?"…":""}&rdquo;</div>
+              </div>
+            </div>
+          ))}
+
+          <div className="modal-foot"><button className="btn-cancel" onClick={()=>setLikesOpen(false)}>Close</button></div>
         </div>
       </div>}
 
