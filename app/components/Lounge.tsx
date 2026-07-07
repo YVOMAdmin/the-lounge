@@ -809,8 +809,10 @@ useEffect(() => {
       .cat-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
       .poll-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:#EDE9FF;color:#7C5CFC;border:1px solid #D4C8FF;letter-spacing:0.4px;text-transform:uppercase}
       .hot{background:#FEF0EB;color:#F4622A;border:1px solid #FACDB8;font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px}
-      .card-delete-btn{background:none;border:none;cursor:pointer;color:#B8B0A4;font-size:13px;padding:2px;line-height:1;flex-shrink:0}
-      .card-delete-btn:hover{color:#F4622A}
+      .card-delete-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid #F9C4A0;border-radius:100px;color:#F9C4A0;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:4px 9px;line-height:1;flex-shrink:0;transition:all 0.15s}
+      .card-delete-btn:hover,.card-delete-btn:focus-visible{background:#F9C4A0;color:#fff}
+      .card-delete-btn::after{content:"Delete post";position:absolute;bottom:calc(100% + 7px);right:0;background:#1A1208;color:#fff;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:10}
+      .card-delete-btn:hover::after,.card-delete-btn:focus-visible::after{opacity:1;visibility:visible}
       .compose-notice{font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:10px}
       .card-body{font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.75;color:#3A3530}
       .poll-q{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:#1A1814;line-height:1.5;margin-bottom:14px}
