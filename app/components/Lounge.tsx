@@ -258,33 +258,35 @@ const CommentsPanel = memo(function CommentsPanel({ p, myAvatar, myName, isAdmin
 
   return (
     <div className="comments-panel">
-      {isOpen && (p.replies||[]).length>0 && (
-        <div className="replies">
-          {(p.replies||[]).map((r:any)=>(
-            <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isFounder={isFounder}
-              likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
-              onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
-              onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
-          ))}
-        </div>
-      )}
-      {!composerOpen ? (
-        <div className="comment-input-preview" onClick={openComposer}>
-          <div className="reply-avi">{myAvatar}</div>
-          <span className="comment-input-preview-text">Add a comment...</span>
-        </div>
-      ) : (
-        <div className="reply-input-row comment-input-row">
-          <div className="reply-avi">{myAvatar}</div>
-          <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
-            <textarea ref={textareaRef} className="reply-input comment-input" rows={1} placeholder="Add a comment..." autoFocus
-              style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',minHeight:80}} value={draft}
-              onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}
-              onBlur={handleBlur}/>
-            <button className="reply-send" onClick={()=>{onSubmit();setComposerOpen(false);}} disabled={!draft.trim()}>Reply</button>
+      {isOpen && <>
+        {(p.replies||[]).length>0 && (
+          <div className="replies">
+            {(p.replies||[]).map((r:any)=>(
+              <ReplyItem key={r.id} r={r} postId={p.id} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isFounder={isFounder}
+                likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
+                onToggleReplyLike={onToggleReplyLike} onToggleReplyInput={onToggleReplyInput}
+                onNestedDraftChange={onNestedDraftChange} onSubmitNestedReply={onSubmitNestedReply} onToggleExpanded={onToggleExpanded}/>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+        {!composerOpen ? (
+          <div className="comment-input-preview" onClick={openComposer}>
+            <div className="reply-avi">{myAvatar}</div>
+            <span className="comment-input-preview-text">Add a comment...</span>
+          </div>
+        ) : (
+          <div className="reply-input-row comment-input-row">
+            <div className="reply-avi">{myAvatar}</div>
+            <div className="reply-input-stack" style={{width:'100%',maxWidth:'100%'}}>
+              <textarea ref={textareaRef} className="reply-input comment-input" rows={1} placeholder="Add a comment..." autoFocus
+                style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',minHeight:80}} value={draft}
+                onChange={(e:any)=>{onDraftChange(e.target.value);e.target.style.height="auto";e.target.style.height=`${e.target.scrollHeight}px`;}}
+                onBlur={handleBlur}/>
+              <button className="reply-send" onClick={()=>{onSubmit();setComposerOpen(false);}} disabled={!draft.trim()}>Reply</button>
+            </div>
+          </div>
+        )}
+      </>}
     </div>
   );
 });
@@ -317,6 +319,7 @@ export default function Lounge() {
   const [pollDraft, setPollDraft]     = useState({question:"",options:["","",""]});
   const [liked, setLiked]             = useState(new Set<any>());
   const [toast, setToast]             = useState<string|null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<any>(null);
   const [openReplies, setOpenReplies] = useState(new Set<any>());
   const [replyDrafts, setReplyDrafts] = useState<any>({});
   const [likedReplies, setLikedReplies] = useState(new Set<any>());
@@ -483,6 +486,11 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     if(!pollDraft.question.trim()||opts.length<2)return;
     setPosts((prev:any)=>[{id:Date.now(),type:"poll",avatar:myAvatar,name:myName,loc:myLoc,time:"just now",question:pollDraft.question,options:opts.map((t:string,i:number)=>({id:String.fromCharCode(97+i),text:t,votes:0})),replies:[]},...prev]);
     setPollDraft({question:"",options:["","",""]});setComposePoll(false);showToast("Poll posted ✓");
+  };
+  const deletePost = () => {
+    setPosts((prev:any)=>prev.filter((p:any)=>p.id!==deleteConfirmId));
+    setDeleteConfirmId(null);
+    showToast("Post deleted");
   };
   const toggleRsvp=(eventId:any)=>{
     const was=rsvpd.has(eventId);
@@ -801,6 +809,9 @@ useEffect(() => {
       .cat-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
       .poll-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:#EDE9FF;color:#7C5CFC;border:1px solid #D4C8FF;letter-spacing:0.4px;text-transform:uppercase}
       .hot{background:#FEF0EB;color:#F4622A;border:1px solid #FACDB8;font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px}
+      .card-delete-btn{background:none;border:none;cursor:pointer;color:#B8B0A4;font-size:13px;padding:2px;line-height:1;flex-shrink:0}
+      .card-delete-btn:hover{color:#F4622A}
+      .compose-notice{font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:10px}
       .card-body{font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.75;color:#3A3530}
       .poll-q{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:#1A1814;line-height:1.5;margin-bottom:14px}
       .poll-options{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
@@ -1112,7 +1123,10 @@ useEffect(() => {
                     <div key={p.id} className="card poll-card">
                       <div className="card-top">
                         <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}{isAdmin&&p.name===myName&&<span className="admin-badge">Admin</span>}{isFounder&&p.name===myName&&<span className="founder-badge">🌟 Founder</span>}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
-                        <span className="poll-badge">📊 Poll</span>
+                        <div className="badge-wrap">
+                          <span className="poll-badge">📊 Poll</span>
+                          {(p.name===myName||isAdmin)&&<button className="card-delete-btn" onClick={()=>setDeleteConfirmId(p.id)} aria-label="Delete post">🗑️</button>}
+                        </div>
                       </div>
                       <div className="poll-q">{p.question}</div>
                       <div className="poll-options">
@@ -1144,6 +1158,7 @@ useEffect(() => {
                       <div className="badge-wrap">
                         <span className="cat-badge" style={{background:`${cat.color}15`,color:cat.color,border:`1px solid ${cat.color}2A`}}>{cat.emoji} {cat.label}</span>
                         {p.hot&&<span className="hot">HOT</span>}
+                        {(p.name===myName||isAdmin)&&<button className="card-delete-btn" onClick={()=>setDeleteConfirmId(p.id)} aria-label="Delete post">🗑️</button>}
                       </div>
                     </div>
                     <div className="card-body">{p.content}</div>
@@ -1397,6 +1412,7 @@ useEffect(() => {
             </div>
           )}
           <div className="cats">{CATEGORIES.map((c:any)=>(<button key={c.id} className={`cat-opt ${draft.category===c.id?"sel":""}`} onClick={()=>setDraft((d:any)=>({...d,category:c.id}))}>{c.emoji} {c.label}</button>))}</div>
+          <div className="compose-notice">Posts and images are automatically removed after 90 days 🗓️</div>
           <div className="modal-foot"><button className="btn-cancel" onClick={closeCompose}>Cancel</button><button className="btn-submit" onClick={submitPost} disabled={!draft.content.trim()||posting}>{posting?"Posting...":"Post"}</button></div>
         </div>
       </div>}
@@ -1544,6 +1560,18 @@ useEffect(() => {
           ))}
 
           <div className="modal-foot"><button className="btn-cancel" onClick={()=>setLikesOpen(false)}>Close</button></div>
+        </div>
+      </div>}
+
+      {/* Delete confirmation */}
+      {deleteConfirmId!=null&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setDeleteConfirmId(null)}>
+        <div className="modal" style={{maxWidth:380}}>
+          <div className="modal-title">Delete post?</div>
+          <div style={{fontSize:13,color:"#6B6358",lineHeight:1.6,marginBottom:20}}>Are you sure you want to delete this post? This cannot be undone.</div>
+          <div className="modal-foot">
+            <button className="btn-cancel" onClick={()=>setDeleteConfirmId(null)}>Cancel</button>
+            <button className="btn-submit" style={{background:"#F4622A"}} onClick={deletePost}>Delete</button>
+          </div>
         </div>
       </div>}
 
