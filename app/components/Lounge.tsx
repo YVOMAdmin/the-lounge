@@ -845,7 +845,7 @@ useEffect(() => {
       .poll-total{font-size:11px;color:#9E9587;margin-top:7px}
       .card-foot{display:flex;align-items:center;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid #F0EDE8}
       .act{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#9E9587;transition:color 0.15s;padding:0}
-      .act:hover{color:#1A1814}.act.on{color:#F4622A}.act-sep{margin-left:auto}
+      .act:hover{color:#1A1814}.act.on{color:#F4622A}
       .comments-panel{width:100%;max-width:100%;margin:0;margin-left:0;padding:0}
       .replies{margin-top:12px;border-top:1px solid #F0EDE8;padding-top:12px;width:100%;max-width:100%}
       .comment-input-row{margin-top:12px;margin-left:0;padding-top:12px;border-top:1px solid #F0EDE8}
@@ -1236,9 +1236,6 @@ useEffect(() => {
                       <button className="act" onClick={()=>resharePost(p)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                         {p.reshareCount||0}
-                      </button>
-                      <button className="act act-sep">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
                     </div>
                     <CommentsPanel p={p} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isFounder={isFounder} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
