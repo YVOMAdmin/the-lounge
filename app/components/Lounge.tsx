@@ -499,7 +499,7 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
       const newPost = {
         id: Date.now(), avatar: myAvatar, name: myName, loc: myLoc, time: "just now",
         isReshare: true, reshareCount: 0,
-        original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category },
+        original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category, images: target.images, type: target.type, question: target.question, options: target.options ? target.options.map((o:any)=>({...o})) : undefined },
         likes: 0, replies: [],
       };
       return [newPost, ...updated];
@@ -1146,15 +1146,34 @@ useEffect(() => {
                         </div>
                       </div>
                       <div className="reshare-label">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                        Reshared
+                        🔁 {o.type==="poll"?"Reshared poll — tap to see original":(o.images&&o.images.length>0?"Reshared with images":"Reshared")}
                       </div>
                       <div className="reshare-embed">
                         <div className="card-who">
                           <div className="avi" style={{width:28,height:28,fontSize:14}}>{o.avatar}</div>
                           <div><div className="who-name" style={{fontSize:13}}>{o.name}</div><div className="who-meta">{o.loc} · {o.time}</div></div>
                         </div>
-                        <div className="card-body" style={{fontSize:13}}>{o.content}</div>
+                        {o.type==="poll"?(
+                          <>
+                            <div className="poll-q" style={{fontSize:13}}>{o.question}</div>
+                            <div className="poll-options">
+                              {o.options.map((opt:any)=>(
+                                <div key={opt.id} className="poll-opt voted" style={{cursor:"default"}}>
+                                  <div className="poll-opt-inner"><span className="poll-opt-text">{opt.text}</span><span className="poll-opt-pct">{opt.votes} votes</span></div>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ):(
+                          <>
+                            <div className="card-body" style={{fontSize:13}}>{o.content}</div>
+                            {o.images&&o.images.length>0&&(
+                              <div className={`post-images-grid ${o.images.length>1?"grid-2":""}`}>
+                                {o.images.map((src:string,i:number)=>(<img key={i} src={src} alt=""/>))}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                       <div className="card-foot">
                         <button className={`act ${isLiked?"on":""}`} onClick={()=>toggleLike(p.id)}>
@@ -1201,7 +1220,13 @@ useEffect(() => {
                         })}
                       </div>
                       {voted&&<div className="poll-total">{total} votes total</div>}
-                      <div className="card-foot"><ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/></div>
+                      <div className="card-foot">
+                        <ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/>
+                        <button className="act" onClick={()=>resharePost(p)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                          {p.reshareCount||0}
+                        </button>
+                      </div>
                       <CommentsPanel p={p} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isFounder={isFounder} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
                       likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
                       onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
