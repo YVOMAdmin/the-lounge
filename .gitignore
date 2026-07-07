@@ -2,6 +2,10 @@
 
 # dependencies
 /node_modules
+# already covered by /node_modules above, but listed explicitly since this
+# doc folder ships a prompt-injection comment (see AGENTS.md) and must never
+# be reintroduced even if the broader ignore rule above changes
+/node_modules/next/dist/docs
 /.pnp
 .pnp.*
 .yarn/*
