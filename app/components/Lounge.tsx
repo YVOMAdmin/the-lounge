@@ -492,6 +492,20 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setDeleteConfirmId(null);
     showToast("Post deleted");
   };
+  const resharePost = (p:any) => {
+    const target = p.isReshare ? p.original : p;
+    setPosts((prev:any)=>{
+      const updated = prev.map((post:any)=>post.id===target.id?{...post,reshareCount:(post.reshareCount||0)+1}:post);
+      const newPost = {
+        id: Date.now(), avatar: myAvatar, name: myName, loc: myLoc, time: "just now",
+        isReshare: true, reshareCount: 0,
+        original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category },
+        likes: 0, replies: [],
+      };
+      return [newPost, ...updated];
+    });
+    showToast("Reshared to The Lounge ✓");
+  };
   const toggleRsvp=(eventId:any)=>{
     const was=rsvpd.has(eventId);
     setRsvpd((prev:any)=>{const n=new Set(prev);was?n.delete(eventId):n.add(eventId);return n;});
@@ -798,6 +812,10 @@ useEffect(() => {
       .card.wins{border-top:4px solid #F5A623}
       .card.venting{border-top:4px solid #5B8DD9}
       .card.poll-card{border-top:4px solid #7C5CFC}
+      .card.reshare-card{border-top:4px solid #F9C4A0}
+      .reshare-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#F9C4A0;font-family:'Inter',sans-serif;margin-bottom:10px}
+      .reshare-embed{border:1px solid #F0EDE8;border-radius:10px;padding:12px 14px;margin-bottom:4px}
+      .reshare-embed .card-who{margin-bottom:8px}
       .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
       .card-who{display:flex;align-items:center;gap:10px}
       .avi{width:36px;height:36px;border-radius:10px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -1117,6 +1135,46 @@ useEffect(() => {
               {feed.length===0&&<div className="no-results"><div className="no-results-emoji">🔍</div><div className="no-results-title">Nothing found</div><div className="no-results-sub">Try a different search or filter</div></div>}
               {feed.map((p:any)=>{
                 const isLiked=liked.has(p.id);
+                if(p.isReshare){
+                  const o=p.original;
+                  return(
+                    <div key={p.id} className="card reshare-card">
+                      <div className="card-top">
+                        <div className="card-who"><div className="avi">{p.avatar}</div><div><div className="who-name">{p.name}{isAdmin&&p.name===myName&&<span className="admin-badge">Admin</span>}{isFounder&&p.name===myName&&<span className="founder-badge">🌟 Founder</span>}</div><div className="who-meta">{p.loc} · {p.time}</div></div></div>
+                        <div className="badge-wrap">
+                          {(p.name===myName||isAdmin)&&<button className="card-delete-btn" onClick={()=>setDeleteConfirmId(p.id)} aria-label="Delete post">🗑️</button>}
+                        </div>
+                      </div>
+                      <div className="reshare-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                        Reshared
+                      </div>
+                      <div className="reshare-embed">
+                        <div className="card-who">
+                          <div className="avi" style={{width:28,height:28,fontSize:14}}>{o.avatar}</div>
+                          <div><div className="who-name" style={{fontSize:13}}>{o.name}</div><div className="who-meta">{o.loc} · {o.time}</div></div>
+                        </div>
+                        <div className="card-body" style={{fontSize:13}}>{o.content}</div>
+                      </div>
+                      <div className="card-foot">
+                        <button className={`act ${isLiked?"on":""}`} onClick={()=>toggleLike(p.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          {p.likes}
+                        </button>
+                        <ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/>
+                        <button className="act" onClick={()=>resharePost(p)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                          {p.reshareCount||0}
+                        </button>
+                      </div>
+                      <CommentsPanel p={p} myAvatar={myAvatar} myName={myName} isAdmin={isAdmin} isFounder={isFounder} isOpen={openReplies.has(p.id)} draft={replyDrafts[p.id]||""} onDraftChange={(v:string)=>setReplyDrafts((prev:any)=>({...prev,[p.id]:v}))} onSubmit={()=>submitReply(p.id)}
+                      likedReplies={likedReplies} openReplyInputs={openReplyInputs} nestedReplyDrafts={nestedReplyDrafts} expandedReplies={expandedReplies}
+                      onToggleReplyLike={toggleReplyLike} onToggleReplyInput={toggleReplyInput}
+                      onNestedDraftChange={(replyId:any,v:string)=>setNestedReplyDrafts((prev:any)=>({...prev,[replyId]:v}))}
+                      onSubmitNestedReply={submitNestedReply} onToggleExpanded={toggleExpandedReplies}/>
+                    </div>
+                  );
+                }
                 if(p.type==="poll"){
                   const voted=votedPolls[p.id];
                   const total=p.options.reduce((s:number,o:any)=>s+o.votes,0);
@@ -1175,6 +1233,10 @@ useEffect(() => {
                         {p.likes}
                       </button>
                       <ReplyBlock p={p} isOpen={openReplies.has(p.id)} onToggle={()=>toggleReplies(p.id)}/>
+                      <button className="act" onClick={()=>resharePost(p)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                        {p.reshareCount||0}
+                      </button>
                       <button className="act act-sep">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                       </button>
