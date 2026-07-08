@@ -961,11 +961,11 @@ useEffect(() => {
 .btn-row3{background:#FFB3C6;color:#1A1208;border:2px solid #FFB3C6;border-radius:100px;padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;transition:background 0.15s;min-width:130px;height:32px;display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
 .btn-row3:hover{background:#ff99b5;border-color:#ff99b5}
       .btn-host{background:transparent;border:1px solid;border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:11px;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
-      .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
-      .layout{display:flex;gap:28px}
+      .wrap{max-width:900px;width:100%;min-width:0;box-sizing:border-box;margin:0 auto;padding:24px 28px}
+      .layout{display:flex;gap:28px;min-width:0}
       .feed{flex:1;min-width:0}
       .rail{width:236px;flex-shrink:0}
-      @media(max-width:680px){.rail{display:none}}
+      @media(max-width:680px){.rail{display:none} .wrap{padding:16px 14px}}
 .tabs{display:flex;gap:6px;margin-bottom:20px;padding:0;flex-wrap:wrap}
 .tab{flex:1;padding:10px;border:2.5px solid #F9C4A0;background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#F9C4A0;border-radius:100px;cursor:pointer;transition:all 0.15s;text-align:center}
 .tab.on{background:#F9C4A0;color:#fff;border-color:#F9C4A0}
@@ -1096,7 +1096,7 @@ useEffect(() => {
       .cal-btn{background:none;border:1px solid #D4CEC5;border-radius:7px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B6358;transition:all 0.15s;font-size:13px}
       .cal-btn:hover{border-color:#1A1814;color:#1A1814}
       .calendar{background:#fff;border:1px solid #E8E3DC;border-radius:14px;padding:14px;margin-bottom:16px}
-      .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+      .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
       .cal-day-label{text-align:center;font-size:10px;color:#9E9587;font-weight:600;padding:5px 0;letter-spacing:0.5px}
       .cal-cell{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:3px 2px;cursor:pointer;transition:background 0.12s;position:relative;min-height:32px}
       .cal-cell:hover{background:#F0EDE8}
@@ -1120,8 +1120,9 @@ useEffect(() => {
       .job-cabinet-tab:hover{opacity:0.95}
       .job-cabinet-tab.active{z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
       .job-cabinet-body{border:2px solid rgba(0,0,0,0.1);border-radius:14px;padding:20px;position:relative;z-index:5;overflow:hidden}
-      .job-cal-cell{cursor:default;min-height:100px;align-items:flex-start;padding-top:6px}
+      .job-cal-cell{cursor:default;min-height:38px;align-items:flex-start;padding-top:6px}
       .job-cal-cell:hover{background:transparent}
+      .job-cal-cell.has-jobs{min-height:100px}
       .postit-stack{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
       .postit{position:relative;width:60px;min-height:56px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:7px 5px 4px;transition:transform 0.15s}
       .postit:hover{transform:scale(1.08) rotate(0deg) !important;z-index:5}
@@ -1131,6 +1132,21 @@ useEffect(() => {
       .postit:hover .postit-tooltip{opacity:1;visibility:visible}
       .postit-more{font-size:9px;color:#9E9587;font-weight:600;align-self:center}
       .job-disclaimer{text-align:center;font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:20px;padding-top:16px;border-top:1px solid #F0EDE8}
+      @media(max-width:680px){
+        .cal-section-head{flex-wrap:wrap;gap:8px;margin:16px 0 12px}
+        .cal-month{min-width:0}
+        .cal-btn{width:32px;height:32px}
+        .job-cabinet{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+        .job-cabinet::-webkit-scrollbar{display:none}
+        .job-cabinet-body{padding:14px}
+        .calendar{padding:8px}
+        .job-cal-cell.has-jobs{min-height:78px}
+        .postit-stack{flex-direction:column;align-items:stretch;gap:3px}
+        .postit{width:100%;min-height:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.15);flex-direction:row;justify-content:flex-start;gap:3px;padding:4px;transform:none!important}
+        .postit-pin{position:static;transform:none;font-size:8px;flex-shrink:0}
+        .postit-title{font-size:7.5px;line-height:1.15;text-align:left;-webkit-line-clamp:1}
+        .postit-more{font-size:8px;align-self:flex-start}
+      }
       .postit-modal{border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
       .postit-modal-pin{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))}
       .postit-modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:15px;color:#1A1208;cursor:pointer;opacity:0.5;padding:4px}
@@ -1633,7 +1649,7 @@ useEffect(() => {
                       if(!day)return<div key={`j${i}`} className="cal-cell job-cal-cell empty"/>;
                       const dayJobs=jobsForDay(jobTab,day);
                       return(
-                        <div key={day} className="cal-cell job-cal-cell">
+                        <div key={day} className={`cal-cell job-cal-cell${dayJobs.length?" has-jobs":""}`}>
                           <div className="cal-num">{day}</div>
                           {dayJobs.length>0&&(
                             <div className="postit-stack">
