@@ -1159,7 +1159,8 @@ useEffect(() => {
       .postit-modal-close:hover{opacity:1}
       .postit-modal-title{font-family:'Fraunces',serif;font-weight:700;font-size:19px;color:#1A1814;margin-bottom:4px}
       .postit-modal-company{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:#3A3530;margin-bottom:8px}
-      .postit-modal-meta{font-size:12px;color:#5A5248;margin-bottom:14px}
+      .postit-modal-meta{font-size:12px;color:#5A5248;margin-bottom:4px}
+      .postit-modal-meta:last-of-type{margin-bottom:14px}
       .postit-modal-desc{font-size:13px;color:#3A3530;line-height:1.6;margin-bottom:16px;background:rgba(255,255,255,0.4);border-radius:8px;padding:12px 14px}
       .postit-modal-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
       .job-source-badge{background:#1A1208;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase}
@@ -1984,7 +1985,8 @@ useEffect(() => {
             <div className="postit-modal-pin">⭐</div>
             <div className="postit-modal-title">{selectedJob.title}</div>
             <div className="postit-modal-company">{selectedJob.company}</div>
-            <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.salary?` · 💷 ${selectedJob.salary}`:""}</div>
+            <div className="postit-modal-meta">📍 {selectedJob.location}</div>
+            {selectedJob.salary&&<div className="postit-modal-meta">💷 {selectedJob.salary}</div>}
             {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
             <div className="postit-modal-badges">
               <span className="job-source-badge">{selectedJob.source}</span>
