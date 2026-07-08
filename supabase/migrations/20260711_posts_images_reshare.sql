@@ -7,7 +7,8 @@
 -- (PostgREST OpenAPI description) that public.posts currently has no
 -- column for image URLs or for marking/targeting a reshare, even though
 -- both features (photo uploads, reshare button) are already live in
--- app/components/Lounge.tsx.
+-- app/components/Lounge.tsx. Also adds threaded-reply support to
+-- public.replies, which is otherwise flat.
 
 alter table public.posts
   add column if not exists images text[] not null default '{}',
@@ -20,3 +21,13 @@ alter table public.posts
 -- category_id for reshare rows rather than adding a new category.
 
 create index if not exists posts_original_post_id_idx on public.posts (original_post_id);
+
+alter table public.replies
+  add column if not exists parent_comment_id uuid references public.replies(id) on delete set null;
+
+-- A reply with parent_comment_id = null is a top-level comment on the
+-- post; a reply with it set is a reply to another reply (the app's
+-- existing nested "reply, like, view replies" comment UI). Restores
+-- real threading instead of the flat "@Name" text-only workaround.
+
+create index if not exists replies_parent_comment_id_idx on public.replies (parent_comment_id);

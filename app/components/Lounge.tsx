@@ -122,6 +122,13 @@ function mapReplyTree(replies: any[], targetId: any, fn: (r: any) => any): any[]
     return r;
   });
 }
+function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
+  return (replies||[]).map((r:any) => {
+    if (r.id === targetId) return { ...r, replies: [...(r.replies||[]), newReply] };
+    if (r.replies && r.replies.length) return { ...r, replies: addNestedReply(r.replies, targetId, newReply) };
+    return r;
+  });
+}
 function collectLikedReplies(posts: any[], likedReplies: Set<any>): {postId:any,postPreview:string,reply:any}[] {
   const result: {postId:any,postPreview:string,reply:any}[] = [];
   const walk = (replies: any[], postId: any, preview: string) => {
@@ -451,17 +458,13 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   const submitNestedReply = async (postId:any, parentReplyId:any) => {
     const text=(nestedReplyDrafts[parentReplyId]||"").trim();
     if(!text||!userId)return;
-    // The live `replies` table is flat (no parent_comment_id column) —
-    // a "reply to a reply" is stored as another top-level reply on the
-    // same post, keeping the "@Name " prefix already in the draft as
-    // the only trace of who it was aimed at (Twitter-style @mention
-    // rather than a true nested thread).
-    const { data, error } = await supabase.from('replies').insert({ post_id: postId, author_id: userId, content: text }).select().single();
+    const { data, error } = await supabase.from('replies').insert({ post_id: postId, author_id: userId, parent_comment_id: parentReplyId, content: text }).select().single();
     if (error) { showToast("Failed to post reply"); return; }
     const newReply={id:data.id,avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]};
-    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:[...(p.replies||[]),newReply]}));
+    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:addNestedReply(p.replies||[],parentReplyId,newReply)}));
     setNestedReplyDrafts((prev:any)=>({...prev,[parentReplyId]:""}));
     setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.delete(parentReplyId); return n;});
+    setExpandedReplies((prev:any)=>{const n=new Set(prev); n.add(parentReplyId); return n;});
     showToast("Reply posted ✓");
   };
   const toggleExpandedReplies = (replyId:any) => {
@@ -550,10 +553,12 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
       showToast("Reshared to The Lounge ✓");
       return;
     }
-    // content/category_id are NOT NULL on posts with no default, so a
-    // reshare row uses an empty caption and inherits the original
-    // post's category rather than adding a new one.
-    const { data, error } = await supabase.from('posts').insert({ author_id: userId, original_post_id: target.id, content: "", category_id: target.category, images: [] }).select().single();
+    // content/category_id are NOT NULL on posts with no default, and
+    // content also has a check constraint rejecting '' specifically
+    // (confirmed live — a single space passes, empty string doesn't) —
+    // so a reshare row uses a single-space caption and inherits the
+    // original post's category rather than adding a new one.
+    const { data, error } = await supabase.from('posts').insert({ author_id: userId, original_post_id: target.id, content: " ", category_id: target.category, images: [] }).select().single();
     if (error) { showToast("Failed to reshare"); return; }
     setPosts((prev:any)=>{
       const updated = prev.map((post:any)=>post.id===target.id?{...post,reshareCount:(post.reshareCount||0)+1}:post);
@@ -801,22 +806,25 @@ useEffect(() => {
     const likesByPost: Record<string, number> = {}
     ;(likesData || []).forEach((l: any) => { likesByPost[l.post_id] = (likesByPost[l.post_id] || 0) + 1 })
 
-    // The live `replies` table is flat (no parent_comment_id) — every
-    // reply belongs directly to a post, not to another reply. A "reply
-    // to a reply" still submits here (see submitNestedReply) with an
-    // "@Name" text prefix rather than a true nested child.
-    const repliesByPost: Record<string, any[]> = {}
+    // replies.parent_comment_id (null = top-level comment on the post,
+    // set = a reply to another reply) builds the real nested tree the
+    // "reply, like, view replies" comment UI expects.
+    const repliesByParent: Record<string, any[]> = {}
     ;(repliesData || []).forEach((r: any) => {
-      (repliesByPost[r.post_id] = repliesByPost[r.post_id] || []).push(r)
+      const key = r.parent_comment_id || `post:${r.post_id}`
+      ;(repliesByParent[key] = repliesByParent[key] || []).push(r)
     })
-    const buildReplies = (postId: string): any[] =>
-      (repliesByPost[postId] || []).map((r: any) => {
+    const buildReplies = (postId: string, parentId: string | null = null): any[] => {
+      const key = parentId || `post:${postId}`
+      return (repliesByParent[key] || []).map((r: any) => {
         const prof = profileFor(r.author_id)
         return {
           id: r.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
-          time: timeAgo(r.created_at), text: r.content, likes: 0, replies: [],
+          time: timeAgo(r.created_at), text: r.content, likes: 0,
+          replies: buildReplies(postId, r.id),
         }
       })
+    }
 
     const postsById: Record<string, any> = {}
     postsData.forEach((p: any) => { postsById[p.id] = p })
