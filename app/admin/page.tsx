@@ -37,9 +37,20 @@ type Suggestion = {
   created_at: string
 }
 
+type JobListing = {
+  id: string
+  title: string
+  company: string
+  location: string
+  source: string
+  posted_date: string
+  is_active: boolean
+}
+
 const JOB_TITLES = [
   'Executive Assistant', 'Personal Assistant', 'Virtual Assistant', 'Office Manager',
   'Operations Coordinator', 'Chief of Staff', 'Admin Assistant', 'Junior PA / Entry Level',
+  'HR Coordinator', 'Finance Assistant', 'Compliance Officer',
 ]
 
 const JOB_TITLE_TO_CATEGORY: Record<string, string> = {
@@ -51,6 +62,9 @@ const JOB_TITLE_TO_CATEGORY: Record<string, string> = {
   'Chief of Staff': 'Chief of Staff',
   'Admin Assistant': 'PA/EA',
   'Junior PA / Entry Level': 'Entry Level',
+  'HR Coordinator': 'HR',
+  'Finance Assistant': 'Finance',
+  'Compliance Officer': 'Compliance',
 }
 
 const JOB_LOCATION_GROUPS: Record<string, string[]> = {
@@ -105,6 +119,10 @@ const s = {
   categoryBadge: { display: 'inline-block', padding: '4px 12px', backgroundColor: '#EDE9FF', color: '#7C5CFC', borderRadius: '100px', fontSize: '12px', fontWeight: 700, marginBottom: '14px' },
   toggleRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', cursor: 'pointer', fontSize: '13px', color: DARK, fontWeight: 600 },
   success: { margin: '0 0 12px', fontSize: '13px', color: GREEN, padding: '8px 12px', background: '#E8FBEF', borderRadius: 8, border: `1px solid ${GREEN}` },
+  table: { width: '100%', borderCollapse: 'collapse' as const, fontSize: '13px' },
+  th: { textAlign: 'left' as const, padding: '10px 12px', fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase' as const, color: PURPLE, fontWeight: 700, borderBottom: `2px solid ${ACCENT}` },
+  td: { padding: '10px 12px', borderBottom: '1px solid #F0EDE8', color: DARK },
+  deleteRowBtn: { padding: '6px 12px', backgroundColor: 'transparent', color: '#FF4D4D', border: '1.5px solid #FF4D4D', borderRadius: '100px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 },
 }
 
 const TICKER_SEGS = [
@@ -145,10 +163,12 @@ export default function AdminPage() {
   const [jobSubmitting, setJobSubmitting] = useState(false)
   const [jobSuccess, setJobSuccess] = useState(false)
   const [jobError, setJobError] = useState('')
+  const [jobListings, setJobListings] = useState<JobListing[]>([])
+  const [jobDeleting, setJobDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin-auth', { method: 'GET' })
-      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents(); fetchSuggestions() } })
+      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents(); fetchSuggestions(); fetchJobListings() } })
       .catch(() => {})
   }, [])
 
@@ -166,6 +186,7 @@ export default function AdminPage() {
         fetchMembers()
         fetchEvents()
         fetchSuggestions()
+        fetchJobListings()
       } else {
         setLoginError('Incorrect password.')
       }
@@ -173,6 +194,22 @@ export default function AdminPage() {
       setLoginError('Something went wrong. Try again.')
     }
     setLoginLoading(false)
+  }
+
+  async function fetchJobListings() {
+    const { data } = await supabase
+      .from('job_listings')
+      .select('id, title, company, location, source, posted_date, is_active')
+      .eq('is_active', true)
+      .order('posted_date', { ascending: false })
+    if (data) setJobListings(data)
+  }
+
+  async function deleteJobListing(id: string) {
+    setJobDeleting(id)
+    await supabase.from('job_listings').delete().eq('id', id)
+    await fetchJobListings()
+    setJobDeleting(null)
   }
 
   async function fetchMembers() {
@@ -287,6 +324,7 @@ export default function AdminPage() {
         title: JOB_TITLES[0], company: '', location: JOB_LOCATION_GROUPS.London[0],
         salary: '', description: '', url: '', source: JOB_SOURCES[0], is_active: true,
       })
+      await fetchJobListings()
       setTimeout(() => setJobSuccess(false), 3000)
     }
     setJobSubmitting(false)
@@ -398,6 +436,41 @@ export default function AdminPage() {
             <button style={s.submitBtn} onClick={submitJob} disabled={jobSubmitting}>{jobSubmitting ? 'Posting...' : 'Post Job →'}</button>
           </div>
         </div>
+
+        <p style={{...s.sectionTitle,marginTop:'28px'}}>Active Job Listings</p>
+        {jobListings.length === 0 ? (
+          <div style={s.empty}><p style={s.emptyText}>No active job listings yet</p></div>
+        ) : (
+          <div style={{...s.card, overflowX: 'auto' as const}}>
+            <div style={s.cardAccent}/>
+            <table style={s.table}>
+              <thead>
+                <tr>
+                  <th style={s.th}>Title</th>
+                  <th style={s.th}>Company</th>
+                  <th style={s.th}>Location</th>
+                  <th style={s.th}>Posted</th>
+                  <th style={s.th}>Source</th>
+                  <th style={s.th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobListings.map(job => (
+                  <tr key={job.id}>
+                    <td style={s.td}>{job.title}</td>
+                    <td style={s.td}>{job.company}</td>
+                    <td style={s.td}>{job.location}</td>
+                    <td style={s.td}>{new Date(job.posted_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
+                    <td style={s.td}>{job.source}</td>
+                    <td style={s.td}>
+                      <button style={s.deleteRowBtn} onClick={()=>deleteJobListing(job.id)} disabled={jobDeleting===job.id}>{jobDeleting===job.id?'…':'Delete'}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pending Suggestions */}
         <p style={s.sectionTitle}>Suggestions Pending Approval</p>

@@ -29,12 +29,15 @@ const EVENT_TYPES = [
 ];
 
 const JOB_TABS = [
-  { id: "PA/EA",            label: "PA/EA",            emoji: "👤", color: "#F9C4A0" },
-  { id: "Office Manager",   label: "Office Manager",   emoji: "📋", color: "#7C5CFC" },
-  { id: "Virtual Assistant",label: "Virtual Assistant",emoji: "💻", color: "#0EAD8B" },
-  { id: "Operations",       label: "Operations",       emoji: "⚙️", color: "#5B8DD9" },
-  { id: "Chief of Staff",   label: "Chief of Staff",   emoji: "👑", color: "#F5A623" },
-  { id: "Entry Level",      label: "Entry Level",      emoji: "📥", color: "#E91E8C" },
+  { id: "PA/EA",             label: "PA / EA",           emoji: "👤", color: "#FFCDD9" },
+  { id: "Office Manager",    label: "Office Manager",    emoji: "📋", color: "#C5B8F5" },
+  { id: "Virtual Assistant", label: "Virtual Assistant", emoji: "💻", color: "#B8F0D0" },
+  { id: "Operations",        label: "Operations",        emoji: "⚙️", color: "#FFE5B4" },
+  { id: "Chief of Staff",    label: "Chief of Staff",    emoji: "👑", color: "#B3D9FF" },
+  { id: "Entry Level",       label: "Entry Level",       emoji: "📥", color: "#F9C4A0" },
+  { id: "HR",                label: "HR",                emoji: "👥", color: "#FFC8F0" },
+  { id: "Finance",           label: "Finance",            emoji: "💰", color: "#D0F0C0" },
+  { id: "Compliance",        label: "Compliance",        emoji: "✅", color: "#C8E0FF" },
 ];
 
 const MAX_POST_IMAGES = 4;
@@ -345,6 +348,8 @@ export default function Lounge() {
   const [jobCalMonth, setJobCalMonth] = useState(new Date().getMonth());
   const [jobCalYear, setJobCalYear]   = useState(new Date().getFullYear());
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [jobFavourites, setJobFavourites] = useState<any[]>([]);
+  const [appliedPending, setAppliedPending] = useState(new Set<any>());
   const [composeEvent, setComposeEvent] = useState(false);
   const [submittedEvent, setSubmittedEvent] = useState(false);
   const [rsvpd, setRsvpd]             = useState(new Set<any>());
@@ -410,6 +415,28 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     const d=new Date(j.posted_date+"T00:00:00");
     return d.getDate()===day&&d.getMonth()===jobCalMonth&&d.getFullYear()===jobCalYear;
   });
+  const isFavourited = (jobId:any) => jobFavourites.some((f:any)=>f.job_id===jobId);
+  const toggleFavourite = async (jobId:any) => {
+    if (!userId) return;
+    const existing = jobFavourites.find((f:any)=>f.job_id===jobId);
+    if (existing) {
+      setJobFavourites((prev:any)=>prev.filter((f:any)=>f.id!==existing.id));
+      await supabase.from('job_favourites').delete().eq('id', existing.id);
+    } else {
+      const { data } = await supabase.from('job_favourites').insert({ user_id: userId, job_id: jobId }).select().single();
+      if (data) setJobFavourites((prev:any)=>[data, ...prev]);
+    }
+  };
+  const markJobApplied = async (favId:any) => {
+    setAppliedPending((prev:any)=>new Set(prev).add(favId));
+    await supabase.from('job_favourites').update({ applied: true }).eq('id', favId);
+    showToast("Marked as applied ✓");
+    setTimeout(async ()=>{
+      setJobFavourites((prev:any)=>prev.filter((f:any)=>f.id!==favId));
+      setAppliedPending((prev:any)=>{ const n=new Set(prev); n.delete(favId); return n; });
+      await supabase.from('job_favourites').delete().eq('id', favId);
+    }, 2000);
+  };
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
  const toggleLike = async (id: any) => {
@@ -697,6 +724,18 @@ useEffect(() => {
   }
   loadJobs()
 }, [])
+useEffect(() => {
+  async function loadFavourites() {
+    if (!userId) { setJobFavourites([]); return }
+    const { data } = await supabase
+      .from('job_favourites')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (data) setJobFavourites(data)
+  }
+  loadFavourites()
+}, [userId])
 
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
@@ -984,21 +1023,23 @@ useEffect(() => {
       .section-divider-text{font-size:10px;color:#9E9587;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
 
       /* ── Job Board ── */
-      .job-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-      .job-tab{padding:8px 14px;border-radius:100px;border:2px solid var(--tab-color,#F9C4A0);background:transparent;color:var(--tab-color,#F9C4A0);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-      .job-tab:hover{background:var(--tab-color,#F9C4A0);color:#fff}
-      .job-tab.on{background:var(--tab-color,#F9C4A0);color:#fff}
-      .job-cal-cell{cursor:default}
+      .job-cabinet{display:flex;align-items:flex-end;flex-wrap:wrap;margin-bottom:0;position:relative;z-index:1}
+      .job-cabinet-tab{padding:9px 15px 11px;border-radius:10px 10px 0 0;border:1px solid rgba(0,0,0,0.1);border-bottom:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#1A1814;cursor:pointer;white-space:nowrap;transition:all 0.15s;margin-left:-6px;transform:translateY(7px);z-index:1;opacity:0.75}
+      .job-cabinet-tab:first-child{margin-left:0}
+      .job-cabinet-tab:hover{opacity:0.95}
+      .job-cabinet-tab.active{transform:translateY(0);z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
+      .job-cabinet-body{border:1px solid rgba(0,0,0,0.1);border-radius:0 14px 14px 14px;padding:20px;position:relative;z-index:5}
+      .job-cal-cell{cursor:default;min-height:82px;align-items:flex-start;padding-top:6px}
       .job-cal-cell:hover{background:transparent}
-      .postit-stack{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px}
-      .postit{position:relative;width:16px;height:16px;background:#FFCDD9;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
-      .postit:hover{transform:scale(1.5);z-index:5}
-      .postit-pin{font-size:8px;position:absolute;top:-5px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
+      .postit-stack{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
+      .postit{position:relative;width:50px;height:50px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
+      .postit:hover{transform:scale(1.08) rotate(0deg) !important;z-index:5}
+      .postit-pin{font-size:14px;position:absolute;top:-8px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
       .postit-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;font-size:10px;font-family:'Inter',sans-serif;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:20}
       .postit:hover .postit-tooltip{opacity:1;visibility:visible}
       .postit-more{font-size:9px;color:#9E9587;font-weight:600;align-self:center}
       .job-disclaimer{text-align:center;font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:20px;padding-top:16px;border-top:1px solid #F0EDE8}
-      .postit-modal{background:#FFCDD9;border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
+      .postit-modal{border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
       .postit-modal-pin{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))}
       .postit-modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:15px;color:#1A1208;cursor:pointer;opacity:0.5;padding:4px}
       .postit-modal-close:hover{opacity:1}
@@ -1006,10 +1047,12 @@ useEffect(() => {
       .postit-modal-company{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:#3A3530;margin-bottom:8px}
       .postit-modal-meta{font-size:12px;color:#5A5248;margin-bottom:14px}
       .postit-modal-desc{font-size:13px;color:#3A3530;line-height:1.6;margin-bottom:16px;background:rgba(255,255,255,0.4);border-radius:8px;padding:12px 14px}
-      .postit-modal-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-      .job-source-badge{background:#1A1208;color:#FFCDD9;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase}
-      .job-vetted-note{font-size:11px;color:#5A5248;font-style:italic}
-      .postit-view-btn{display:block;background:#1A1208;color:#FFCDD9;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
+      .postit-modal-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+      .job-source-badge{background:#1A1208;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase}
+      .postit-fav-btn{display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.5);border:1.5px solid #1A1208;color:#1A1208;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;padding:8px 14px;border-radius:100px;cursor:pointer;margin-bottom:14px;transition:all 0.15s}
+      .postit-fav-btn.on{background:#1A1208;color:#fff}
+      .job-vetted-note{font-size:11px;color:#5A5248;margin-bottom:16px;line-height:1.5}
+      .postit-view-btn{display:block;background:#1A1208;color:#fff;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
       .postit-view-btn:hover{background:#3A3530}
 
       /* Sidebar */
@@ -1019,8 +1062,6 @@ useEffect(() => {
 .rail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#F9C4A0;margin-bottom:10px}
 .rail-num{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:#F9C4A0;letter-spacing:-1px;line-height:1}
 .rail-sub{font-size:11px;color:#9E9587;margin-top:2px;margin-bottom:10px}
-      .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#0EAD8B;margin-right:5px;animation:blink 2.2s infinite}
-      @keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
       .tag{display:inline-block;font-size:12px;color:#7C5CFC;margin-bottom:7px;cursor:pointer}
       .tag:hover{text-decoration:underline}
       .welcome{background:linear-gradient(135deg,#FFFBF5 0%,#F0EDE8 100%);border:1px solid #E8E3DC;border-radius:12px;padding:16px;margin-bottom:12px}
@@ -1044,6 +1085,13 @@ useEffect(() => {
       .view-filter-banner{display:flex;align-items:center;justify-content:space-between;background:#FEF0EB;border:1px solid #FACDB8;border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:12px;font-weight:600;color:#F4622A;font-family:'Inter',sans-serif}
       .view-filter-banner button{background:none;border:none;color:#F4622A;font-weight:600;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif}
       .no-liked-item{font-size:13px;color:#9E9587;font-style:italic;margin-bottom:14px}
+      .job-fav-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #F0EDE8}
+      .job-fav-row:last-of-type{border-bottom:none}
+      .job-fav-info{min-width:0}
+      .job-fav-title{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
+      .job-fav-meta{font-size:11px;color:#9E9587;margin-top:2px}
+      .job-fav-applied{display:flex;align-items:center;gap:6px;font-size:12px;color:#3A3530;cursor:pointer;white-space:nowrap;flex-shrink:0}
+      .job-fav-gone{font-size:12px;color:#9E9587;font-style:italic}
       .modal-who{display:flex;align-items:center;gap:10px;margin-bottom:14px}
       .compose-name{font-family:'Fraunces',serif;font-weight:600;font-size:14px}
       .compose-sub{font-size:11px;color:#9E9587}
@@ -1472,48 +1520,50 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div className="job-tabs">
+              <div className="job-cabinet">
                 {JOB_TABS.map((t:any)=>(
-                  <button key={t.id} className={`job-tab ${jobTab===t.id?"on":""}`} style={{"--tab-color":t.color} as any} onClick={()=>setJobTab(t.id)}>{t.emoji} {t.label}</button>
+                  <button key={t.id} className={`job-cabinet-tab ${jobTab===t.id?"active":""}`} style={{background:t.color}} onClick={()=>setJobTab(t.id)}>{t.emoji} {t.label}</button>
                 ))}
               </div>
 
-              <div className="cal-section-head">
-                <div className="cal-section-title">{tabInfo.emoji} {tabInfo.label}</div>
-                <div className="cal-nav">
-                  <button className="cal-btn" onClick={jobPrevMonth}>‹</button>
-                  <span className="cal-month">{MONTHS[jobCalMonth]} {jobCalYear}</span>
-                  <button className="cal-btn" onClick={jobNextMonth}>›</button>
+              <div className="job-cabinet-body" style={{background:`${tabInfo.color}22`,borderColor:tabInfo.color}}>
+                <div className="cal-section-head" style={{marginTop:0}}>
+                  <div className="cal-section-title">{tabInfo.emoji} {tabInfo.label}</div>
+                  <div className="cal-nav">
+                    <button className="cal-btn" onClick={jobPrevMonth}>‹</button>
+                    <span className="cal-month">{MONTHS[jobCalMonth]} {jobCalYear}</span>
+                    <button className="cal-btn" onClick={jobNextMonth}>›</button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="calendar" style={{borderTop:`3px solid ${tabInfo.color}`}}>
-                <div className="cal-grid">
-                  {DAYS.map((d:string)=><div key={d} className="cal-day-label">{d}</div>)}
-                  {jobCalCells.map((day:any,i:number)=>{
-                    if(!day)return<div key={`j${i}`} className="cal-cell job-cal-cell empty"/>;
-                    const dayJobs=jobsForDay(jobTab,day);
-                    return(
-                      <div key={day} className="cal-cell job-cal-cell">
-                        <div className="cal-num">{day}</div>
-                        {dayJobs.length>0&&(
-                          <div className="postit-stack">
-                            {dayJobs.slice(0,3).map((job:any)=>(
-                              <div key={job.id} className="postit" onClick={()=>setSelectedJob(job)}>
-                                <span className="postit-pin">⭐</span>
-                                <span className="postit-tooltip">{job.title} · {job.company}</span>
-                              </div>
-                            ))}
-                            {dayJobs.length>3&&<div className="postit-more">+{dayJobs.length-3}</div>}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="calendar" style={{borderTop:`3px solid ${tabInfo.color}`}}>
+                  <div className="cal-grid">
+                    {DAYS.map((d:string)=><div key={d} className="cal-day-label">{d}</div>)}
+                    {jobCalCells.map((day:any,i:number)=>{
+                      if(!day)return<div key={`j${i}`} className="cal-cell job-cal-cell empty"/>;
+                      const dayJobs=jobsForDay(jobTab,day);
+                      return(
+                        <div key={day} className="cal-cell job-cal-cell">
+                          <div className="cal-num">{day}</div>
+                          {dayJobs.length>0&&(
+                            <div className="postit-stack">
+                              {dayJobs.slice(0,3).map((job:any,pi:number)=>(
+                                <div key={job.id} className="postit" style={{background:tabInfo.color,transform:`rotate(${pi%2===0?-2:2}deg)`}} onClick={()=>setSelectedJob(job)}>
+                                  <span className="postit-pin">⭐</span>
+                                  <span className="postit-tooltip">{job.title} · {job.company}</span>
+                                </div>
+                              ))}
+                              {dayJobs.length>3&&<div className="postit-more">+{dayJobs.length-3}</div>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              <div className="job-disclaimer">All listings link directly to the original source. Vetted by The Lounge admin. 📌</div>
+                <div className="job-disclaimer">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes. 📌</div>
+              </div>
               </div>);
             })()}
           </div>
@@ -1529,8 +1579,6 @@ useEffect(() => {
             </div>
             <div className="rail-card">
               <div className="rail-title">Right now</div>
-              <div className="rail-num">3,104</div>
-              <div className="rail-sub"><span className="live-dot"/>members online</div>
               <div className="rail-num">7.1k</div>
               <div className="rail-sub">posts today</div>
             </div>
@@ -1725,6 +1773,32 @@ useEffect(() => {
             <button className="btn-icon" onClick={()=>{setViewFilter("liked");setActiveTab("feed");setSettingsOpen(false);}}>❤️ My Liked Posts</button>
           </div>
 
+          <div className="section-label">⭐ Favourite Jobs</div>
+          {jobFavourites.length===0?(
+            <div className="no-liked-item">No favourite jobs yet</div>
+          ):jobFavourites.map((fav:any)=>{
+            const job = jobListings.find((j:any)=>j.id===fav.job_id);
+            const pending = appliedPending.has(fav.id);
+            return (
+              <div key={fav.id} className="job-fav-row">
+                {job?(
+                  <>
+                    <div className="job-fav-info">
+                      <div className="job-fav-title">{job.title}</div>
+                      <div className="job-fav-meta">{job.company} · {job.location}</div>
+                    </div>
+                    <label className="job-fav-applied">
+                      <input type="checkbox" checked={pending} disabled={pending} onChange={()=>markJobApplied(fav.id)}/>
+                      Applied ✓
+                    </label>
+                  </>
+                ):(
+                  <div className="job-fav-gone">This listing is no longer available</div>
+                )}
+              </div>
+            );
+          })}
+
           <div className="modal-foot"><button className="btn-cancel" onClick={()=>setSettingsOpen(false)}>Close</button></div>
         </div>
       </div>}
@@ -1778,21 +1852,28 @@ useEffect(() => {
       </div>}
 
       {/* Job detail */}
-      {selectedJob&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setSelectedJob(null)}>
-        <div className="postit-modal">
-          <button className="postit-modal-close" onClick={()=>setSelectedJob(null)} aria-label="Close">✕</button>
-          <div className="postit-modal-pin">⭐</div>
-          <div className="postit-modal-title">{selectedJob.title}</div>
-          <div className="postit-modal-company">{selectedJob.company}</div>
-          <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.salary?` · 💷 ${selectedJob.salary}`:""}</div>
-          {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
-          <div className="postit-modal-badges">
-            <span className="job-source-badge">{selectedJob.source}</span>
-            <span className="job-vetted-note">✓ Vetted by The Lounge admin</span>
+      {selectedJob&&(()=>{
+        const jobColor = (JOB_TABS.find((t:any)=>t.id===selectedJob.role_category)||JOB_TABS[0]).color;
+        const faved = isFavourited(selectedJob.id);
+        return(
+        <div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setSelectedJob(null)}>
+          <div className="postit-modal" style={{background:jobColor}}>
+            <button className="postit-modal-close" onClick={()=>setSelectedJob(null)} aria-label="Close">✕</button>
+            <div className="postit-modal-pin">⭐</div>
+            <div className="postit-modal-title">{selectedJob.title}</div>
+            <div className="postit-modal-company">{selectedJob.company}</div>
+            <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.salary?` · 💷 ${selectedJob.salary}`:""}</div>
+            {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
+            <div className="postit-modal-badges">
+              <span className="job-source-badge">{selectedJob.source}</span>
+            </div>
+            <button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>
+            <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
+            <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>
           </div>
-          <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>
         </div>
-      </div>}
+        );
+      })()}
 
       {toast&&<div className="toast">{toast}</div>}
     </div>
