@@ -37,6 +37,30 @@ type Suggestion = {
   created_at: string
 }
 
+const JOB_TITLES = [
+  'Executive Assistant', 'Personal Assistant', 'Virtual Assistant', 'Office Manager',
+  'Operations Coordinator', 'Chief of Staff', 'Admin Assistant', 'Junior PA / Entry Level',
+]
+
+const JOB_TITLE_TO_CATEGORY: Record<string, string> = {
+  'Executive Assistant': 'PA/EA',
+  'Personal Assistant': 'PA/EA',
+  'Virtual Assistant': 'Virtual Assistant',
+  'Office Manager': 'Office Manager',
+  'Operations Coordinator': 'Operations',
+  'Chief of Staff': 'Chief of Staff',
+  'Admin Assistant': 'PA/EA',
+  'Junior PA / Entry Level': 'Entry Level',
+}
+
+const JOB_LOCATION_GROUPS: Record<string, string[]> = {
+  London: ['London Central', 'London City', 'London East', 'London West', 'London North', 'London South', 'Canary Wharf', 'Remote/London based'],
+  Kent: ['Ashford', 'Bexley', 'Broadstairs', 'Canterbury', 'Cranbrook', 'Dartford', 'Deal', 'Dover', 'Faversham', 'Folkestone', 'Gillingham', 'Gravesend', 'Hawkhurst', 'Herne Bay', 'Hythe', 'Longfield', 'Maidstone', 'Margate', 'Medway', 'New Romney', 'Orpington', 'Ramsgate', 'Rochester', 'Romney Marsh', 'Sandwich', 'Sevenoaks', 'Sheerness', 'Sittingbourne', 'Tenterden', 'Tonbridge', 'Tunbridge Wells', 'West Malling', 'Westerham'],
+  Other: ['Remote UK', 'Hybrid'],
+}
+
+const JOB_SOURCES = ['Reed', 'Direct (company website)', 'Member submission']
+
 const ACCENT = '#F9C4A0'
 const PURPLE = '#7B5EA7'
 const GREEN = '#2DC653'
@@ -75,6 +99,12 @@ const s = {
   input: { width: '100%', padding: '11px 16px', borderRadius: '100px', border: `2px solid ${ACCENT}`, fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box' as const, outline: 'none', background: '#FAFAF8', color: DARK },
   submitBtn: { width: '100%', padding: '12px', backgroundColor: ACCENT, color: '#fff', border: 'none', borderRadius: '100px', fontSize: '14px', cursor: 'pointer', fontWeight: 700, fontFamily: "'Syne', sans-serif" },
   error: { margin: '0 0 12px', fontSize: '13px', color: '#FF4D4D', padding: '8px 12px', background: '#FFE8E8', borderRadius: 8, border: '1px solid #FF4D4D' },
+  fieldLabel: { fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase' as const, color: PURPLE, fontWeight: 700, marginBottom: '6px', display: 'block' },
+  selectInput: { width: '100%', padding: '11px 16px', borderRadius: '12px', border: `2px solid ${ACCENT}`, fontSize: '14px', marginBottom: '14px', boxSizing: 'border-box' as const, outline: 'none', background: '#FAFAF8', color: DARK, fontFamily: "'Inter', sans-serif" },
+  textareaInput: { width: '100%', padding: '11px 16px', borderRadius: '12px', border: `2px solid ${ACCENT}`, fontSize: '14px', marginBottom: '14px', boxSizing: 'border-box' as const, outline: 'none', background: '#FAFAF8', color: DARK, fontFamily: "'Inter', sans-serif", minHeight: '90px', resize: 'vertical' as const },
+  categoryBadge: { display: 'inline-block', padding: '4px 12px', backgroundColor: '#EDE9FF', color: '#7C5CFC', borderRadius: '100px', fontSize: '12px', fontWeight: 700, marginBottom: '14px' },
+  toggleRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', cursor: 'pointer', fontSize: '13px', color: DARK, fontWeight: 600 },
+  success: { margin: '0 0 12px', fontSize: '13px', color: GREEN, padding: '8px 12px', background: '#E8FBEF', borderRadius: 8, border: `1px solid ${GREEN}` },
 }
 
 const TICKER_SEGS = [
@@ -102,6 +132,19 @@ export default function AdminPage() {
   const [approvedEvents, setApprovedEvents] = useState<Event[]>([])
   const [pendingSuggestions, setPendingSuggestions] = useState<Suggestion[]>([])
   const [approvedSuggestions, setApprovedSuggestions] = useState<Suggestion[]>([])
+  const [jobForm, setJobForm] = useState({
+    title: JOB_TITLES[0],
+    company: '',
+    location: JOB_LOCATION_GROUPS.London[0],
+    salary: '',
+    description: '',
+    url: '',
+    source: JOB_SOURCES[0],
+    is_active: true,
+  })
+  const [jobSubmitting, setJobSubmitting] = useState(false)
+  const [jobSuccess, setJobSuccess] = useState(false)
+  const [jobError, setJobError] = useState('')
 
   useEffect(() => {
     fetch('/api/admin-auth', { method: 'GET' })
@@ -218,6 +261,37 @@ export default function AdminPage() {
     setProcessing(null)
   }
 
+  async function submitJob() {
+    setJobError('')
+    if (!jobForm.company.trim() || !jobForm.url.trim()) {
+      setJobError('Company and external URL are required.')
+      return
+    }
+    setJobSubmitting(true)
+    const { error } = await supabase.from('job_listings').insert({
+      title: jobForm.title,
+      company: jobForm.company.trim(),
+      location: jobForm.location,
+      salary: jobForm.salary.trim() || null,
+      description: jobForm.description.trim() || null,
+      url: jobForm.url.trim(),
+      source: jobForm.source,
+      role_category: JOB_TITLE_TO_CATEGORY[jobForm.title],
+      is_active: jobForm.is_active,
+    })
+    if (error) {
+      setJobError('Failed to post job. Please try again.')
+    } else {
+      setJobSuccess(true)
+      setJobForm({
+        title: JOB_TITLES[0], company: '', location: JOB_LOCATION_GROUPS.London[0],
+        salary: '', description: '', url: '', source: JOB_SOURCES[0], is_active: true,
+      })
+      setTimeout(() => setJobSuccess(false), 3000)
+    }
+    setJobSubmitting(false)
+  }
+
   if (!authed) {
     return (
       <main style={s.loginPage}>
@@ -274,6 +348,55 @@ export default function AdminPage() {
           <div style={s.statCard}><p style={s.statNum}>{approved.length}</p><p style={s.statLabel}>Approved Members</p></div>
           <div style={s.statCard}><p style={s.statNum}>{pendingEvents.length}</p><p style={s.statLabel}>Pending Events</p></div>
           <div style={s.statCard}><p style={s.statNum}>{pendingSuggestions.length}</p><p style={s.statLabel}>Pending Suggestions</p></div>
+        </div>
+
+        {/* Job Board */}
+        <p style={s.sectionTitle}>Job Board — Post a New Job</p>
+        <div style={s.card}>
+          <div style={s.cardAccent}/>
+          <div style={{padding:'20px 24px'}}>
+            {jobError && <p style={s.error}>{jobError}</p>}
+            {jobSuccess && <p style={s.success}>Job posted to the board ✓</p>}
+
+            <label style={s.fieldLabel}>Title</label>
+            <select style={s.selectInput} value={jobForm.title} onChange={e=>setJobForm(f=>({...f, title: e.target.value}))}>
+              {JOB_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <span style={s.categoryBadge}>Role category: {JOB_TITLE_TO_CATEGORY[jobForm.title]}</span>
+
+            <label style={s.fieldLabel}>Company</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="Company name" value={jobForm.company} onChange={e=>setJobForm(f=>({...f, company: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Location</label>
+            <select style={s.selectInput} value={jobForm.location} onChange={e=>setJobForm(f=>({...f, location: e.target.value}))}>
+              {Object.entries(JOB_LOCATION_GROUPS).map(([group, locs]) => (
+                <optgroup key={group} label={group}>
+                  {locs.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                </optgroup>
+              ))}
+            </select>
+
+            <label style={s.fieldLabel}>Salary (optional)</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="e.g. £32,000 - £38,000" value={jobForm.salary} onChange={e=>setJobForm(f=>({...f, salary: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Description</label>
+            <textarea style={s.textareaInput} placeholder="Role summary, responsibilities, requirements..." value={jobForm.description} onChange={e=>setJobForm(f=>({...f, description: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>External URL</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="https://..." value={jobForm.url} onChange={e=>setJobForm(f=>({...f, url: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Source</label>
+            <select style={s.selectInput} value={jobForm.source} onChange={e=>setJobForm(f=>({...f, source: e.target.value}))}>
+              {JOB_SOURCES.map(src => <option key={src} value={src}>{src}</option>)}
+            </select>
+
+            <label style={s.toggleRow}>
+              <input type="checkbox" checked={jobForm.is_active} onChange={e=>setJobForm(f=>({...f, is_active: e.target.checked}))}/>
+              🟢 Active (visible on the Job Board)
+            </label>
+
+            <button style={s.submitBtn} onClick={submitJob} disabled={jobSubmitting}>{jobSubmitting ? 'Posting...' : 'Post Job →'}</button>
+          </div>
         </div>
 
         {/* Pending Suggestions */}

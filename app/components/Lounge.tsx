@@ -28,6 +28,15 @@ const EVENT_TYPES = [
   { id: "social",     label: "Social Events",   emoji: "🎉", color: "#E91E8C" },
 ];
 
+const JOB_TABS = [
+  { id: "PA/EA",            label: "PA/EA",            emoji: "👤", color: "#F9C4A0" },
+  { id: "Office Manager",   label: "Office Manager",   emoji: "📋", color: "#7C5CFC" },
+  { id: "Virtual Assistant",label: "Virtual Assistant",emoji: "💻", color: "#0EAD8B" },
+  { id: "Operations",       label: "Operations",       emoji: "⚙️", color: "#5B8DD9" },
+  { id: "Chief of Staff",   label: "Chief of Staff",   emoji: "👑", color: "#F5A623" },
+  { id: "Entry Level",      label: "Entry Level",      emoji: "📥", color: "#E91E8C" },
+];
+
 const MAX_POST_IMAGES = 4;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -331,6 +340,11 @@ export default function Lounge() {
   const [calMonth, setCalMonth]       = useState(new Date().getMonth());
   const [calYear, setCalYear]         = useState(new Date().getFullYear());
   const [selectedDay, setSelectedDay] = useState<number|null>(null);
+  const [jobListings, setJobListings] = useState<any[]>([]);
+  const [jobTab, setJobTab]           = useState("PA/EA");
+  const [jobCalMonth, setJobCalMonth] = useState(new Date().getMonth());
+  const [jobCalYear, setJobCalYear]   = useState(new Date().getFullYear());
+  const [selectedJob, setSelectedJob] = useState<any>(null);
   const [composeEvent, setComposeEvent] = useState(false);
   const [submittedEvent, setSubmittedEvent] = useState(false);
   const [rsvpd, setRsvpd]             = useState(new Set<any>());
@@ -389,6 +403,13 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   const selectedDayEvents = selectedDay ? eventsForDay(selectedDay) : [];
   const prevMonth = ()=>{ if(calMonth===0){setCalMonth(11);setCalYear((y:number)=>y-1);}else setCalMonth((m:number)=>m-1); setSelectedDay(null); };
   const nextMonth = ()=>{ if(calMonth===11){setCalMonth(0);setCalYear((y:number)=>y+1);}else setCalMonth((m:number)=>m+1); setSelectedDay(null); };
+  const jobPrevMonth = ()=>{ if(jobCalMonth===0){setJobCalMonth(11);setJobCalYear((y:number)=>y-1);}else setJobCalMonth((m:number)=>m-1); };
+  const jobNextMonth = ()=>{ if(jobCalMonth===11){setJobCalMonth(0);setJobCalYear((y:number)=>y+1);}else setJobCalMonth((m:number)=>m+1); };
+  const jobsForDay = (tab:string, day:number) => jobListings.filter((j:any)=>{
+    if(j.role_category!==tab) return false;
+    const d=new Date(j.posted_date+"T00:00:00");
+    return d.getDate()===day&&d.getMonth()===jobCalMonth&&d.getFullYear()===jobCalYear;
+  });
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
  const toggleLike = async (id: any) => {
@@ -665,6 +686,17 @@ useEffect(() => {
   }
   loadEvents()
 }, [])
+useEffect(() => {
+  async function loadJobs() {
+    const { data } = await supabase
+      .from('job_listings')
+      .select('*')
+      .eq('is_active', true)
+      .order('posted_date', { ascending: false })
+    if (data) setJobListings(data)
+  }
+  loadJobs()
+}, [])
 
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
@@ -673,6 +705,12 @@ useEffect(() => {
   for(let d=1;d<=totalDays;d++)calCells.push(d);
   const todayDate=new Date();
   const isToday=(d:number)=>d===todayDate.getDate()&&calMonth===todayDate.getMonth()&&calYear===todayDate.getFullYear();
+
+  const jobTotalDays=daysInMonth(jobCalMonth,jobCalYear);
+  const jobFirstDay=firstDayOfMonth(jobCalMonth,jobCalYear);
+  const jobCalCells:any[]=[];
+  for(let i=0;i<jobFirstDay;i++)jobCalCells.push(null);
+  for(let d=1;d<=jobTotalDays;d++)jobCalCells.push(d);
 
   const EventCard=({event,compact}:{event:any,compact:boolean})=>{
     const t=typeOf(event.type);
@@ -944,6 +982,35 @@ useEffect(() => {
       .section-divider{display:flex;align-items:center;gap:12px;margin:24px 0 20px}
       .section-divider-line{flex:1;height:1px;background:#E8E3DC}
       .section-divider-text{font-size:10px;color:#9E9587;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+
+      /* ── Job Board ── */
+      .job-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+      .job-tab{padding:8px 14px;border-radius:100px;border:2px solid var(--tab-color,#F9C4A0);background:transparent;color:var(--tab-color,#F9C4A0);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+      .job-tab:hover{background:var(--tab-color,#F9C4A0);color:#fff}
+      .job-tab.on{background:var(--tab-color,#F9C4A0);color:#fff}
+      .job-cal-cell{cursor:default}
+      .job-cal-cell:hover{background:transparent}
+      .postit-stack{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px}
+      .postit{position:relative;width:16px;height:16px;background:#FFCDD9;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
+      .postit:hover{transform:scale(1.5);z-index:5}
+      .postit-pin{font-size:8px;position:absolute;top:-5px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
+      .postit-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;font-size:10px;font-family:'Inter',sans-serif;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:20}
+      .postit:hover .postit-tooltip{opacity:1;visibility:visible}
+      .postit-more{font-size:9px;color:#9E9587;font-weight:600;align-self:center}
+      .job-disclaimer{text-align:center;font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:20px;padding-top:16px;border-top:1px solid #F0EDE8}
+      .postit-modal{background:#FFCDD9;border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
+      .postit-modal-pin{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))}
+      .postit-modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:15px;color:#1A1208;cursor:pointer;opacity:0.5;padding:4px}
+      .postit-modal-close:hover{opacity:1}
+      .postit-modal-title{font-family:'Fraunces',serif;font-weight:700;font-size:19px;color:#1A1814;margin-bottom:4px}
+      .postit-modal-company{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:#3A3530;margin-bottom:8px}
+      .postit-modal-meta{font-size:12px;color:#5A5248;margin-bottom:14px}
+      .postit-modal-desc{font-size:13px;color:#3A3530;line-height:1.6;margin-bottom:16px;background:rgba(255,255,255,0.4);border-radius:8px;padding:12px 14px}
+      .postit-modal-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+      .job-source-badge{background:#1A1208;color:#FFCDD9;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase}
+      .job-vetted-note{font-size:11px;color:#5A5248;font-style:italic}
+      .postit-view-btn{display:block;background:#1A1208;color:#FFCDD9;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
+      .postit-view-btn:hover{background:#3A3530}
 
       /* Sidebar */
 .rail-card{background:#fff;border:2px solid #F9C4A0;border-radius:14px;padding:16px;margin-bottom:12px}
@@ -1395,11 +1462,60 @@ useEffect(() => {
             </div>}
 
             {/* ── JOB BOARD ── */}
-            {activeTab==="jobs"&&<div className="no-results">
-              <div className="no-results-emoji">💼</div>
-              <div className="no-results-title">Job Board coming soon</div>
-              <div className="no-results-sub">We're building a space to share admin & EA opportunities. Watch this space!</div>
-            </div>}
+            {activeTab==="jobs"&&(()=>{
+              const tabInfo = JOB_TABS.find((t:any)=>t.id===jobTab) || JOB_TABS[0];
+              return(<div>
+              <div className="events-hero">
+                <div>
+                  <div className="events-hero-title">💼 Job Board</div>
+                  <div className="events-hero-sub">Curated admin & EA roles — Reed, direct employer listings, and member shares.</div>
+                </div>
+              </div>
+
+              <div className="job-tabs">
+                {JOB_TABS.map((t:any)=>(
+                  <button key={t.id} className={`job-tab ${jobTab===t.id?"on":""}`} style={{"--tab-color":t.color} as any} onClick={()=>setJobTab(t.id)}>{t.emoji} {t.label}</button>
+                ))}
+              </div>
+
+              <div className="cal-section-head">
+                <div className="cal-section-title">{tabInfo.emoji} {tabInfo.label}</div>
+                <div className="cal-nav">
+                  <button className="cal-btn" onClick={jobPrevMonth}>‹</button>
+                  <span className="cal-month">{MONTHS[jobCalMonth]} {jobCalYear}</span>
+                  <button className="cal-btn" onClick={jobNextMonth}>›</button>
+                </div>
+              </div>
+
+              <div className="calendar" style={{borderTop:`3px solid ${tabInfo.color}`}}>
+                <div className="cal-grid">
+                  {DAYS.map((d:string)=><div key={d} className="cal-day-label">{d}</div>)}
+                  {jobCalCells.map((day:any,i:number)=>{
+                    if(!day)return<div key={`j${i}`} className="cal-cell job-cal-cell empty"/>;
+                    const dayJobs=jobsForDay(jobTab,day);
+                    return(
+                      <div key={day} className="cal-cell job-cal-cell">
+                        <div className="cal-num">{day}</div>
+                        {dayJobs.length>0&&(
+                          <div className="postit-stack">
+                            {dayJobs.slice(0,3).map((job:any)=>(
+                              <div key={job.id} className="postit" onClick={()=>setSelectedJob(job)}>
+                                <span className="postit-pin">⭐</span>
+                                <span className="postit-tooltip">{job.title} · {job.company}</span>
+                              </div>
+                            ))}
+                            {dayJobs.length>3&&<div className="postit-more">+{dayJobs.length-3}</div>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="job-disclaimer">All listings link directly to the original source. Vetted by The Lounge admin. 📌</div>
+              </div>);
+            })()}
           </div>
 
           {/* Sidebar */}
@@ -1658,6 +1774,23 @@ useEffect(() => {
             <button className="btn-cancel" onClick={()=>setDeleteConfirmId(null)}>Cancel</button>
             <button className="btn-submit" style={{background:"#F4622A"}} onClick={deletePost}>Delete</button>
           </div>
+        </div>
+      </div>}
+
+      {/* Job detail */}
+      {selectedJob&&<div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setSelectedJob(null)}>
+        <div className="postit-modal">
+          <button className="postit-modal-close" onClick={()=>setSelectedJob(null)} aria-label="Close">✕</button>
+          <div className="postit-modal-pin">⭐</div>
+          <div className="postit-modal-title">{selectedJob.title}</div>
+          <div className="postit-modal-company">{selectedJob.company}</div>
+          <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.salary?` · 💷 ${selectedJob.salary}`:""}</div>
+          {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
+          <div className="postit-modal-badges">
+            <span className="job-source-badge">{selectedJob.source}</span>
+            <span className="job-vetted-note">✓ Vetted by The Lounge admin</span>
+          </div>
+          <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>
         </div>
       </div>}
 
