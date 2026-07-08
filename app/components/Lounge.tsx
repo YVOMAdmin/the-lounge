@@ -50,48 +50,6 @@ const LOCS    = ["EST","GMT","PST","AEST","CET","GMT-5","IST","GMT+8","CST","MST
 const MONTHS  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS    = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-const SEED_POSTS: any[] = [
-  { id:1, avatar:"📋", name:"Diane", loc:"GMT", category:"rant", time:"3m ago", hot:true,
-    content:"Someone just booked a 'quick meeting to discuss the agenda' for a meeting that already has an agenda. I coordinate seven executives. I have arranged 14 catering orders this week. I am working from my kitchen table and my patience is thinner than the paper I no longer print.",
-    likes:284, replies:[
-      { id:101, avatar:"☕", name:"Nadia", loc:"CET", time:"2m ago", text:"The agenda meeting is my villain origin story. You have my full solidarity." },
-      { id:102, avatar:"📁", name:"Chloe", loc:"AEST", time:"1m ago", text:"I once had a pre-meeting to prepare for the pre-meeting. We discussed whether we needed an agenda for that one too." },
-    ]},
-  { id:2, avatar:"✉️", name:"Priya", loc:"IST", category:"advice", time:"18m ago", hot:true,
-    content:"How do you stop a director from cc'ing you on every single email 'just so you're in the loop'? I have 847 unread emails. I am the loop. I am drowning in the loop.",
-    likes:341, replies:[
-      { id:201, avatar:"🗓", name:"Bex", loc:"GMT", time:"15m ago", text:"I set up a filter that auto-files anything CC'd to me from him into a folder called 'Maybe Later.' Life-changing." },
-      { id:202, avatar:"📌", name:"Karen", loc:"EST", time:"10m ago", text:"847 unread is actually impressive restraint. I stopped counting at 2,000." },
-    ]},
-  { id:"poll-1", type:"poll", avatar:"🗓", name:"Bex", loc:"GMT", time:"40m ago",
-    question:"It's 5:28 PM on a Friday. A senior leader just emailed asking for 'a quick update'. What do you do?",
-    options:[
-      { id:"a", text:"Pretend I didn't see it until Monday", votes:38 },
-      { id:"b", text:"Reply at 5:29 PM out of spite", votes:61 },
-      { id:"c", text:"Draft a response and then delete it", votes:44 },
-      { id:"d", text:"Close the laptop and go for a walk", votes:27 },
-    ], replies:[]},
-  { id:3, avatar:"🗓", name:"Bex", loc:"GMT", category:"experience", time:"45m ago", hot:true,
-    content:"Had to reschedule the same board meeting four times because one non-exec can never do Tuesdays, one can never do mornings, and one is 'flexible but not Fridays.' I finally found a slot. It took three weeks. It is a Tuesday morning. Nobody said a word.",
-    likes:519, replies:[
-      { id:301, avatar:"✉️", name:"Priya", loc:"IST", time:"30m ago", text:"The silence after a successful reschedule is both a victory and an insult." },
-    ]},
-  { id:4, avatar:"☕", name:"Nadia", loc:"CET", category:"wins", time:"1h ago", hot:true,
-    content:"Set up a Calendly link, sent it to the entire leadership team, and not a single person has emailed me asking 'when are you free?' today. Day one. We don't celebrate small victories enough.",
-    likes:603, replies:[
-      { id:401, avatar:"📋", name:"Diane", loc:"GMT", time:"55m ago", text:"This is the most inspiring thing I have read all week. Which Calendly plan? Asking for immediate implementation." },
-    ]},
-  { id:5, avatar:"📌", name:"Karen", loc:"EST", category:"venting", time:"3h ago",
-    content:"Admin and EA life means you're expected to be available instantly on Slack, Teams, WhatsApp, email, AND a phone call 'just to confirm you saw the email.' Meanwhile I am also managing five inboxes, two shared calendars, and a spreadsheet that has a spreadsheet inside it.",
-    likes:412, replies:[]},
-  { id:6, avatar:"🗂", name:"Ruth", loc:"PST", category:"rant", time:"7h ago", hot:true,
-    content:"They gave us a new expenses system. The training video is 47 minutes long. I have to resubmit every receipt from October. October. I have been in admin for eleven years and I have never felt closer to simply walking into the sea.",
-    likes:698, replies:[
-      { id:601, avatar:"☕", name:"Nadia", loc:"CET", time:"6h ago", text:"October receipts. In this economy. I'm so sorry." },
-      { id:602, avatar:"📌", name:"Karen", loc:"EST", time:"5h ago", text:"The sea is always there for us. Solidarity." },
-    ]},
-];
-
 const RESOURCES = [
   { emoji:"📄", title:"Email boundary scripts", desc:"Copy-paste responses for out-of-hours requests" },
   { emoji:"🗓", title:"Calendar block templates", desc:"Focus time, admin blocks, no-meeting windows" },
@@ -148,6 +106,14 @@ const fmtEnd = (d: Date, duration: number) => {
   return d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + ' - ' + end.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
 };
 const fmtDate= (d: Date)    => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const timeAgo = (iso: string) => {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+};
 
 function mapReplyTree(replies: any[], targetId: any, fn: (r: any) => any): any[] {
   return (replies||[]).map((r:any) => {
@@ -316,7 +282,8 @@ export default function Lounge() {
   { text: 'The Lounge Community', bg: '#B3D9FF', color: '#1A1208' },
   { text: '✦', bg: '#B3D9FF', color: '#7B5EA7' },
 ]
-  const [posts, setPosts]             = useState(SEED_POSTS);
+  const [posts, setPosts]             = useState<any[]>([]);
+  const [postsLoaded, setPostsLoaded] = useState(false);
   const [events, setEvents]           = useState(SEED_EVENTS);
   const [filter, setFilter]           = useState("all");
   const [search, setSearch]           = useState("");
@@ -398,6 +365,15 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   },[posts,filter,search,viewFilter,liked,myName]);
   const likedPostsList = useMemo(()=>posts.filter((p:any)=>p.type!=="poll"&&liked.has(p.id)),[posts,liked]);
   const likedCommentsList = useMemo(()=>collectLikedReplies(posts, likedReplies),[posts,likedReplies]);
+  const trendingHashtags = useMemo(()=>{
+    const counts: Record<string, number> = {};
+    posts.forEach((p:any)=>{
+      if (!p.content) return;
+      const matches = p.content.match(/#[a-zA-Z0-9_]+/g);
+      if (matches) matches.forEach((tag:string)=>{ counts[tag]=(counts[tag]||0)+1; });
+    });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([tag])=>tag);
+  },[posts]);
 
   const daysInMonth  = (m:number,y:number) => new Date(y,m+1,0).getDate();
   const firstDayOfMonth = (m:number,y:number) => new Date(y,m,1).getDay();
@@ -440,17 +416,25 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
  const toggleLike = async (id: any) => {
+  if (!userId) return;
   const was = liked.has(id);
   setLiked((prev: any) => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
   setPosts((prev: any) => prev.map((p: any) => p.id === id && p.likes != null ? { ...p, likes: was ? p.likes - 1 : p.likes + 1 } : p));
-  if (!was) { const post = posts.find((p:any)=>p.id===id); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'like',post_id:id,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} liked your post`})}) } }
+  if (was) {
+    await supabase.from('post_likes').delete().eq('post_id', id).eq('user_id', userId);
+  } else {
+    await supabase.from('post_likes').insert({ post_id: id, user_id: userId });
+    const post = posts.find((p:any)=>p.id===id); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'like',post_id:id,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} liked your post`})}) }
+  }
 };
 
   const toggleReplies=useCallback((id:any)=>setOpenReplies((prev:any)=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;}),[]);
  const submitReply=async(postId:any)=>{
     const text=(replyDrafts[postId]||"").trim();
-    if(!text)return;
-    setPosts((prev:any)=>prev.map((p:any)=>p.id===postId?{...p,replies:[...(p.replies||[]),{id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text}]}:p));
+    if(!text||!userId)return;
+    const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, content: text }).select().single();
+    if (error) { showToast("Failed to post reply"); return; }
+    setPosts((prev:any)=>prev.map((p:any)=>p.id===postId?{...p,replies:[...(p.replies||[]),{id:data.id,avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]}]}:p));
     setReplyDrafts((prev:any)=>({...prev,[postId]:""}));
     showToast("Reply posted ✓");
     const post = posts.find((p:any)=>p.id===postId); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'reply',post_id:postId,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} replied to your post`})}) }
@@ -464,10 +448,12 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.has(replyId)?n.delete(replyId):n.add(replyId); return n;});
     setNestedReplyDrafts((prev:any)=>prev[replyId]!==undefined?prev:{...prev,[replyId]:`@${name} `});
   };
-  const submitNestedReply = (postId:any, parentReplyId:any) => {
+  const submitNestedReply = async (postId:any, parentReplyId:any) => {
     const text=(nestedReplyDrafts[parentReplyId]||"").trim();
-    if(!text)return;
-    const newReply={id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]};
+    if(!text||!userId)return;
+    const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, parent_comment_id: parentReplyId, content: text }).select().single();
+    if (error) { showToast("Failed to post reply"); return; }
+    const newReply={id:data.id,avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]};
     setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:addNestedReply(p.replies||[],parentReplyId,newReply)}));
     setNestedReplyDrafts((prev:any)=>({...prev,[parentReplyId]:""}));
     setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.delete(parentReplyId); return n;});
@@ -511,7 +497,7 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     return ()=>{ urls.forEach((u:string)=>URL.revokeObjectURL(u)); };
   },[selectedImages]);
   const submitPost=async()=>{
-    if(!draft.content.trim())return;
+    if(!draft.content.trim()||!userId)return;
     setPosting(true);
     let imageUrls: string[] = [];
     if (selectedImages.length) {
@@ -526,7 +512,9 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
         setImageError("Failed to upload images"); setPosting(false); return;
       }
     }
-    setPosts((prev:any)=>[{id:Date.now(),avatar:myAvatar,name:myName,loc:myLoc,category:draft.category,time:"just now",content:draft.content,images:imageUrls,likes:0,replies:[]},...prev]);
+    const { data, error } = await supabase.from('posts').insert({ user_id: userId, content: draft.content, category: draft.category, images: imageUrls }).select().single();
+    if (error) { showToast("Failed to post"); setPosting(false); return; }
+    setPosts((prev:any)=>[{id:data.id,avatar:myAvatar,name:myName,loc:myLoc,category:draft.category,time:"just now",content:draft.content,images:imageUrls,likes:0,replies:[],author_id:userId,reshareCount:0},...prev]);
     setDraft({content:"",category:"rant"});setSelectedImages([]);setCompose(false);setPosting(false);showToast("Posted to The Lounge ✓");
   };
   const submitPoll=()=>{
@@ -535,19 +523,37 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
     setPosts((prev:any)=>[{id:Date.now(),type:"poll",avatar:myAvatar,name:myName,loc:myLoc,time:"just now",question:pollDraft.question,options:opts.map((t:string,i:number)=>({id:String.fromCharCode(97+i),text:t,votes:0})),replies:[]},...prev]);
     setPollDraft({question:"",options:["","",""]});setComposePoll(false);showToast("Poll posted ✓");
   };
-  const deletePost = () => {
-    setPosts((prev:any)=>prev.filter((p:any)=>p.id!==deleteConfirmId));
+  const deletePost = async () => {
+    const id = deleteConfirmId;
+    setPosts((prev:any)=>prev.filter((p:any)=>p.id!==id));
     setDeleteConfirmId(null);
     showToast("Post deleted");
+    await supabase.from('posts').delete().eq('id', id);
   };
-  const resharePost = (p:any) => {
+  const resharePost = async (p:any) => {
     const target = p.isReshare ? p.original : p;
+    if (!userId || target.type === "poll") {
+      setPosts((prev:any)=>{
+        const updated = prev.map((post:any)=>post.id===target.id?{...post,reshareCount:(post.reshareCount||0)+1}:post);
+        const newPost = {
+          id: Date.now(), avatar: myAvatar, name: myName, loc: myLoc, time: "just now",
+          isReshare: true, reshareCount: 0,
+          original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category, images: target.images, type: target.type, question: target.question, options: target.options ? target.options.map((o:any)=>({...o})) : undefined },
+          likes: 0, replies: [],
+        };
+        return [newPost, ...updated];
+      });
+      showToast("Reshared to The Lounge ✓");
+      return;
+    }
+    const { data, error } = await supabase.from('posts').insert({ user_id: userId, is_reshare: true, original_post_id: target.id, content: null, category: null, images: [] }).select().single();
+    if (error) { showToast("Failed to reshare"); return; }
     setPosts((prev:any)=>{
       const updated = prev.map((post:any)=>post.id===target.id?{...post,reshareCount:(post.reshareCount||0)+1}:post);
       const newPost = {
-        id: Date.now(), avatar: myAvatar, name: myName, loc: myLoc, time: "just now",
-        isReshare: true, reshareCount: 0,
-        original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category, images: target.images, type: target.type, question: target.question, options: target.options ? target.options.map((o:any)=>({...o})) : undefined },
+        id: data.id, avatar: myAvatar, name: myName, loc: myLoc, time: "just now",
+        isReshare: true, reshareCount: 0, author_id: userId,
+        original: { id: target.id, avatar: target.avatar, name: target.name, loc: target.loc, time: target.time, content: target.content, category: target.category, images: target.images },
         likes: 0, replies: [],
       };
       return [newPost, ...updated];
@@ -736,6 +742,92 @@ useEffect(() => {
   }
   loadFavourites()
 }, [userId])
+useEffect(() => {
+  async function loadPosts() {
+    const { data: postsData } = await supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (!postsData) { setPostsLoaded(true); return }
+
+    const { data: likesData } = await supabase.from('post_likes').select('*')
+    const { data: commentsData } = await supabase.from('post_comments').select('*')
+
+    const userIds = Array.from(new Set([
+      ...postsData.map((p: any) => p.user_id),
+      ...(commentsData || []).map((c: any) => c.user_id),
+    ].filter(Boolean)))
+
+    const profilesMap: Record<string, any> = {}
+    if (userIds.length) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_emoji, location')
+        .in('id', userIds)
+      ;(profilesData || []).forEach((pr: any) => { profilesMap[pr.id] = pr })
+    }
+    const profileFor = (id: string) => profilesMap[id] || { username: 'Member', avatar_emoji: '☕', location: 'GMT' }
+
+    const likesByPost: Record<string, number> = {}
+    ;(likesData || []).forEach((l: any) => { likesByPost[l.post_id] = (likesByPost[l.post_id] || 0) + 1 })
+
+    const commentsByParent: Record<string, any[]> = {}
+    ;(commentsData || []).forEach((c: any) => {
+      const key = c.parent_comment_id || `post:${c.post_id}`
+      ;(commentsByParent[key] = commentsByParent[key] || []).push(c)
+    })
+    const buildReplies = (postId: string, parentId: string | null): any[] => {
+      const key = parentId || `post:${postId}`
+      return (commentsByParent[key] || [])
+        .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map((c: any) => {
+          const prof = profileFor(c.user_id)
+          return {
+            id: c.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
+            time: timeAgo(c.created_at), text: c.content, likes: 0,
+            replies: buildReplies(postId, c.id),
+          }
+        })
+    }
+
+    const postsById: Record<string, any> = {}
+    postsData.forEach((p: any) => { postsById[p.id] = p })
+
+    const reshareCounts: Record<string, number> = {}
+    postsData.forEach((p: any) => { if (p.is_reshare && p.original_post_id) reshareCounts[p.original_post_id] = (reshareCounts[p.original_post_id] || 0) + 1 })
+
+    const mapPost = (p: any) => {
+      const prof = profileFor(p.user_id)
+      return {
+        id: p.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
+        time: timeAgo(p.created_at), category: p.category, content: p.content,
+        images: p.images || [], likes: likesByPost[p.id] || 0, author_id: p.user_id,
+        replies: buildReplies(p.id, null),
+      }
+    }
+
+    const mapped = postsData.map((p: any) => {
+      const base = mapPost(p)
+      if (p.is_reshare) {
+        const orig = p.original_post_id ? postsById[p.original_post_id] : null
+        return { ...base, isReshare: true, reshareCount: reshareCounts[p.id] || 0, original: orig ? mapPost(orig) : null }
+      }
+      return { ...base, reshareCount: reshareCounts[p.id] || 0 }
+    }).filter((p: any) => !(p.isReshare && !p.original))
+
+    setPosts(mapped)
+    setPostsLoaded(true)
+  }
+  loadPosts()
+}, [])
+useEffect(() => {
+  if (!userId || !postsLoaded) return
+  async function loadMyLikes() {
+    const { data } = await supabase.from('post_likes').select('post_id').eq('user_id', userId)
+    if (data) setLiked(new Set(data.map((l: any) => l.post_id)))
+  }
+  loadMyLikes()
+}, [userId, postsLoaded])
 
   const totalDays=daysInMonth(calMonth,calYear);
   const firstDay=firstDayOfMonth(calMonth,calYear);
@@ -1600,9 +1692,11 @@ useEffect(() => {
             {activeTab==="feed"&&(
   <div className="rail-card">
     <div className="rail-title">Trending</div>
-    {["#JustOneMoreReschedule","#847UnreadEmails","#ASAPAtFivePM","#TheAgendaMeeting","#NewExpensesSystem","#ManagingUpIsAJob"].map((t:string)=>(
-      <div key={t}><span className="tag" onClick={()=>setSearch(t.slice(1))}>{t}</span></div>
-    ))}
+    {trendingHashtags.length===0
+      ? <div style={{fontSize:12,color:"#9E9587"}}>No hashtags yet — be the first to use one!</div>
+      : trendingHashtags.map((t:string)=>(
+        <div key={t}><span className="tag" onClick={()=>setSearch(t.slice(1))}>{t}</span></div>
+      ))}
     {events.filter((e:any)=>e.approved&&new Date(e.date)>=new Date()).slice(0,3).length>0&&(
       <>
         <div style={{height:1,background:'#F0EDE8',margin:'12px 0'}}/>
