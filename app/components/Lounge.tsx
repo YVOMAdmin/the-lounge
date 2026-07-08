@@ -315,6 +315,7 @@ export default function Lounge() {
   const [jobCalMonth, setJobCalMonth] = useState(new Date().getMonth());
   const [jobCalYear, setJobCalYear]   = useState(new Date().getFullYear());
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [jobDayModal, setJobDayModal] = useState<number|null>(null);
   const [jobFavourites, setJobFavourites] = useState<any[]>([]);
   const [appliedPending, setAppliedPending] = useState(new Set<any>());
   const [composeEvent, setComposeEvent] = useState(false);
@@ -721,10 +722,11 @@ useEffect(() => {
 }, [])
 useEffect(() => {
   async function loadJobs() {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
     const { data } = await supabase
       .from('job_listings')
       .select('*')
-      .eq('is_active', true)
+      .or(`is_active.eq.true,closed_at.gt.${ninetyDaysAgo}`)
       .order('posted_date', { ascending: false })
     if (data) setJobListings(data)
   }
@@ -1127,10 +1129,13 @@ useEffect(() => {
       .postit{position:relative;width:60px;min-height:56px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:7px 5px 4px;transition:transform 0.15s}
       .postit:hover{transform:scale(1.08) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:14px;position:absolute;top:-8px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
-      .postit-title{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;line-height:1.2;color:#1A1208;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+      .postit-title{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;line-height:1.2;color:#1A1208;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-width:0}
       .postit-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;font-size:10px;font-family:'Inter',sans-serif;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:20}
       .postit:hover .postit-tooltip{opacity:1;visibility:visible}
-      .postit-more{font-size:9px;color:#9E9587;font-weight:600;align-self:center}
+      .postit-more{font-family:'Inter',sans-serif;font-size:9px;color:#6B6358;font-weight:700;align-self:center;background:#fff;border:1px solid #E2DDD6;border-radius:100px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
+      .postit-more:hover{background:#F0EDE8;border-color:#D4CEC5}
+      .postit.closed{filter:grayscale(0.85);opacity:0.7}
+      .postit-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);background:rgba(255,251,245,0.92);border:1.5px solid #8a2020;color:#8a2020;font-family:'Inter',sans-serif;font-weight:800;font-size:9px;letter-spacing:0.5px;padding:1px 7px;border-radius:4px;pointer-events:none;text-transform:uppercase;white-space:nowrap}
       .job-disclaimer{text-align:center;font-size:11px;color:#9E9587;font-family:'Inter',sans-serif;margin-top:20px;padding-top:16px;border-top:1px solid #F0EDE8}
       @media(max-width:680px){
         .cal-section-head{flex-wrap:wrap;gap:8px;margin:16px 0 12px}
@@ -1145,6 +1150,7 @@ useEffect(() => {
         .postit{width:100%;min-height:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.15);flex-direction:row;justify-content:flex-start;gap:3px;padding:4px;transform:none!important}
         .postit-pin{position:static;transform:none;font-size:8px;flex-shrink:0}
         .postit-title{font-size:7.5px;line-height:1.15;text-align:left;-webkit-line-clamp:1}
+        .postit-stamp{position:static;transform:none;font-size:6.5px;padding:1px 4px;flex-shrink:0}
         .postit-more{font-size:8px;align-self:flex-start}
       }
       .postit-modal{border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
@@ -1162,6 +1168,14 @@ useEffect(() => {
       .job-vetted-note{font-size:11px;color:#5A5248;margin-bottom:16px;line-height:1.5}
       .postit-view-btn{display:block;background:#1A1208;color:#fff;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
       .postit-view-btn:hover{background:#3A3530}
+      .postit-closed-notice{display:block;background:rgba(0,0,0,0.06);color:#5A5248;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
+      .job-day-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:50vh;overflow-y:auto}
+      .job-day-list-item{border:1px solid #E8E3DC;border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s}
+      .job-day-list-item:hover{border-color:#D4CEC5;background:#FAFAF8}
+      .job-day-list-item.closed{opacity:0.65}
+      .job-day-list-title{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:#1A1814;display:flex;align-items:center;gap:8px}
+      .job-day-list-status{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8a2020;border:1px solid #8a2020;border-radius:100px;padding:1px 7px}
+      .job-day-list-company{font-size:12px;color:#9E9587;margin-top:2px}
 
       /* Sidebar */
 .rail-card{background:#fff;border:2px solid #F9C4A0;border-radius:14px;padding:16px;margin-bottom:12px}
@@ -1651,18 +1665,21 @@ useEffect(() => {
                       return(
                         <div key={day} className={`cal-cell job-cal-cell${dayJobs.length?" has-jobs":""}`}>
                           <div className="cal-num">{day}</div>
-                          {dayJobs.length>0&&(
+                          {dayJobs.length>0&&(()=>{
+                            const first=dayJobs[0];
+                            const isClosed=first.status==="closed"||first.status==="filled";
+                            return(
                             <div className="postit-stack">
-                              {dayJobs.slice(0,3).map((job:any,pi:number)=>(
-                                <div key={job.id} className="postit" style={{background:tabInfo.color,transform:`rotate(${pi%2===0?-2:2}deg)`}} onClick={()=>setSelectedJob(job)}>
-                                  <span className="postit-pin">⭐</span>
-                                  <span className="postit-title">{job.title}</span>
-                                  <span className="postit-tooltip">{job.title} · {job.company}</span>
-                                </div>
-                              ))}
-                              {dayJobs.length>3&&<div className="postit-more">+{dayJobs.length-3}</div>}
+                              <div className={`postit${isClosed?" closed":""}`} style={{background:tabInfo.color,transform:`rotate(-2deg)`}} onClick={()=>setSelectedJob(first)}>
+                                <span className="postit-pin">⭐</span>
+                                <span className="postit-title">{first.title}</span>
+                                {isClosed&&<span className="postit-stamp">{first.status==="filled"?"Filled":"Closed"}</span>}
+                                <span className="postit-tooltip">{first.title} · {first.company}</span>
+                              </div>
+                              {dayJobs.length>1&&<button type="button" className="postit-more" onClick={()=>setJobDayModal(day)}>+{dayJobs.length-1} more</button>}
                             </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       );
                     })}
@@ -1959,6 +1976,7 @@ useEffect(() => {
       {selectedJob&&(()=>{
         const jobColor = (JOB_TABS.find((t:any)=>t.id===selectedJob.role_category)||JOB_TABS[0]).color;
         const faved = isFavourited(selectedJob.id);
+        const isClosed = selectedJob.status==="closed"||selectedJob.status==="filled";
         return(
         <div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setSelectedJob(null)}>
           <div className="postit-modal" style={{background:jobColor}}>
@@ -1970,10 +1988,40 @@ useEffect(() => {
             {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
             <div className="postit-modal-badges">
               <span className="job-source-badge">{selectedJob.source}</span>
+              {isClosed&&<span className="job-source-badge" style={{background:"#8a2020"}}>{selectedJob.status==="filled"?"Filled":"Closed"}</span>}
             </div>
-            <button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>
+            {!isClosed&&<button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>}
             <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
-            <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>
+            {isClosed
+              ? <div className="postit-closed-notice">This role is no longer available.</div>
+              : <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>}
+          </div>
+        </div>
+        );
+      })()}
+
+      {/* Day jobs list */}
+      {jobDayModal!==null&&(()=>{
+        const dj = jobsForDay(jobTab, jobDayModal);
+        const tabInfo2 = JOB_TABS.find((t:any)=>t.id===jobTab) || JOB_TABS[0];
+        return(
+        <div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&setJobDayModal(null)}>
+          <div className="modal" style={{maxWidth:420}}>
+            <div className="modal-title-row">
+              <div className="modal-title">{tabInfo2.emoji} Jobs posted {jobDayModal} {MONTHS[jobCalMonth]}</div>
+              <button className="modal-close" onClick={()=>setJobDayModal(null)} aria-label="Close">✕</button>
+            </div>
+            <div className="job-day-list">
+              {dj.map((job:any)=>{
+                const isClosed = job.status==="closed"||job.status==="filled";
+                return(
+                  <div key={job.id} className={`job-day-list-item${isClosed?" closed":""}`} onClick={()=>{setSelectedJob(job);setJobDayModal(null);}}>
+                    <div className="job-day-list-title">{job.title}{isClosed&&<span className="job-day-list-status">{job.status==="filled"?"Filled":"Closed"}</span>}</div>
+                    <div className="job-day-list-company">{job.company}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
         );

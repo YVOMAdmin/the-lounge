@@ -45,6 +45,8 @@ type JobListing = {
   source: string
   posted_date: string
   is_active: boolean
+  status?: string
+  closed_at?: string | null
 }
 
 const JOB_TITLES = [
@@ -123,6 +125,7 @@ const s = {
   th: { textAlign: 'left' as const, padding: '10px 12px', fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase' as const, color: PURPLE, fontWeight: 700, borderBottom: `2px solid ${ACCENT}` },
   td: { padding: '10px 12px', borderBottom: '1px solid #F0EDE8', color: DARK },
   deleteRowBtn: { padding: '6px 12px', backgroundColor: 'transparent', color: '#FF4D4D', border: '1.5px solid #FF4D4D', borderRadius: '100px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 },
+  closeRowBtn: { padding: '6px 12px', backgroundColor: 'transparent', color: '#6B6358', border: '1.5px solid #D4CEC5', borderRadius: '100px', fontSize: '11px', cursor: 'pointer', fontWeight: 600, marginRight: '6px' },
 }
 
 const TICKER_SEGS = [
@@ -199,7 +202,7 @@ export default function AdminPage() {
   async function fetchJobListings() {
     const { data } = await supabase
       .from('job_listings')
-      .select('id, title, company, location, source, posted_date, is_active')
+      .select('id, title, company, location, source, posted_date, is_active, status, closed_at')
       .eq('is_active', true)
       .order('posted_date', { ascending: false })
     if (data) setJobListings(data)
@@ -208,6 +211,13 @@ export default function AdminPage() {
   async function deleteJobListing(id: string) {
     setJobDeleting(id)
     await supabase.from('job_listings').delete().eq('id', id)
+    await fetchJobListings()
+    setJobDeleting(null)
+  }
+
+  async function closeJobListing(id: string, status: 'closed' | 'filled') {
+    setJobDeleting(id)
+    await supabase.from('job_listings').update({ is_active: false, status, closed_at: new Date().toISOString() }).eq('id', id)
     await fetchJobListings()
     setJobDeleting(null)
   }
@@ -463,6 +473,8 @@ export default function AdminPage() {
                     <td style={s.td}>{new Date(job.posted_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
                     <td style={s.td}>{job.source}</td>
                     <td style={s.td}>
+                      <button style={s.closeRowBtn} onClick={()=>closeJobListing(job.id,'filled')} disabled={jobDeleting===job.id}>Mark Filled</button>
+                      <button style={s.closeRowBtn} onClick={()=>closeJobListing(job.id,'closed')} disabled={jobDeleting===job.id}>Mark Closed</button>
                       <button style={s.deleteRowBtn} onClick={()=>deleteJobListing(job.id)} disabled={jobDeleting===job.id}>{jobDeleting===job.id?'…':'Delete'}</button>
                     </td>
                   </tr>
