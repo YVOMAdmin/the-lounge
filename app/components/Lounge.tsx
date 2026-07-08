@@ -122,13 +122,6 @@ function mapReplyTree(replies: any[], targetId: any, fn: (r: any) => any): any[]
     return r;
   });
 }
-function addNestedReply(replies: any[], targetId: any, newReply: any): any[] {
-  return (replies||[]).map((r:any) => {
-    if (r.id === targetId) return { ...r, replies: [...(r.replies||[]), newReply] };
-    if (r.replies && r.replies.length) return { ...r, replies: addNestedReply(r.replies, targetId, newReply) };
-    return r;
-  });
-}
 function collectLikedReplies(posts: any[], likedReplies: Set<any>): {postId:any,postPreview:string,reply:any}[] {
   const result: {postId:any,postPreview:string,reply:any}[] = [];
   const walk = (replies: any[], postId: any, preview: string) => {
@@ -428,9 +421,9 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   setLiked((prev: any) => { const n = new Set(prev); was ? n.delete(id) : n.add(id); return n; });
   setPosts((prev: any) => prev.map((p: any) => p.id === id && p.likes != null ? { ...p, likes: was ? p.likes - 1 : p.likes + 1 } : p));
   if (was) {
-    await supabase.from('post_likes').delete().eq('post_id', id).eq('user_id', userId);
+    await supabase.from('likes').delete().eq('post_id', id).eq('profile_id', userId);
   } else {
-    await supabase.from('post_likes').insert({ post_id: id, user_id: userId });
+    await supabase.from('likes').insert({ post_id: id, profile_id: userId });
     const post = posts.find((p:any)=>p.id===id); if(post?.author_id){ const s=await supabase.auth.getSession(); fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:post.author_id,type:'like',post_id:id,from_user_id:s.data.session?.user.id,from_username:myName,message:`${myName} liked your post`})}) }
   }
 };
@@ -439,7 +432,7 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
  const submitReply=async(postId:any)=>{
     const text=(replyDrafts[postId]||"").trim();
     if(!text||!userId)return;
-    const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, content: text }).select().single();
+    const { data, error } = await supabase.from('replies').insert({ post_id: postId, author_id: userId, content: text }).select().single();
     if (error) { showToast("Failed to post reply"); return; }
     setPosts((prev:any)=>prev.map((p:any)=>p.id===postId?{...p,replies:[...(p.replies||[]),{id:data.id,avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]}]}:p));
     setReplyDrafts((prev:any)=>({...prev,[postId]:""}));
@@ -458,13 +451,17 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
   const submitNestedReply = async (postId:any, parentReplyId:any) => {
     const text=(nestedReplyDrafts[parentReplyId]||"").trim();
     if(!text||!userId)return;
-    const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, parent_comment_id: parentReplyId, content: text }).select().single();
+    // The live `replies` table is flat (no parent_comment_id column) —
+    // a "reply to a reply" is stored as another top-level reply on the
+    // same post, keeping the "@Name " prefix already in the draft as
+    // the only trace of who it was aimed at (Twitter-style @mention
+    // rather than a true nested thread).
+    const { data, error } = await supabase.from('replies').insert({ post_id: postId, author_id: userId, content: text }).select().single();
     if (error) { showToast("Failed to post reply"); return; }
     const newReply={id:data.id,avatar:myAvatar,name:myName,loc:myLoc,time:"just now",text,likes:0,replies:[]};
-    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:addNestedReply(p.replies||[],parentReplyId,newReply)}));
+    setPosts((prev:any)=>prev.map((p:any)=>p.id!==postId?p:{...p,replies:[...(p.replies||[]),newReply]}));
     setNestedReplyDrafts((prev:any)=>({...prev,[parentReplyId]:""}));
     setOpenReplyInputs((prev:any)=>{const n=new Set(prev); n.delete(parentReplyId); return n;});
-    setExpandedReplies((prev:any)=>{const n=new Set(prev); n.add(parentReplyId); return n;});
     showToast("Reply posted ✓");
   };
   const toggleExpandedReplies = (replyId:any) => {
@@ -519,7 +516,7 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
         setImageError("Failed to upload images"); setPosting(false); return;
       }
     }
-    const { data, error } = await supabase.from('posts').insert({ user_id: userId, content: draft.content, category: draft.category, images: imageUrls }).select().single();
+    const { data, error } = await supabase.from('posts').insert({ author_id: userId, content: draft.content, category_id: draft.category, images: imageUrls }).select().single();
     if (error) { showToast("Failed to post"); setPosting(false); return; }
     setPosts((prev:any)=>[{id:data.id,avatar:myAvatar,name:myName,loc:myLoc,category:draft.category,time:"just now",content:draft.content,images:imageUrls,likes:0,replies:[],author_id:userId,reshareCount:0},...prev]);
     setDraft({content:"",category:"rant"});setSelectedImages([]);setCompose(false);setPosting(false);showToast("Posted to The Lounge ✓");
@@ -553,7 +550,10 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
       showToast("Reshared to The Lounge ✓");
       return;
     }
-    const { data, error } = await supabase.from('posts').insert({ user_id: userId, is_reshare: true, original_post_id: target.id, content: null, category: null, images: [] }).select().single();
+    // content/category_id are NOT NULL on posts with no default, so a
+    // reshare row uses an empty caption and inherits the original
+    // post's category rather than adding a new one.
+    const { data, error } = await supabase.from('posts').insert({ author_id: userId, original_post_id: target.id, content: "", category_id: target.category, images: [] }).select().single();
     if (error) { showToast("Failed to reshare"); return; }
     setPosts((prev:any)=>{
       const updated = prev.map((post:any)=>post.id===target.id?{...post,reshareCount:(post.reshareCount||0)+1}:post);
@@ -780,12 +780,12 @@ useEffect(() => {
       .order('created_at', { ascending: false })
     if (!postsData) { setPostsLoaded(true); return }
 
-    const { data: likesData } = await supabase.from('post_likes').select('*')
-    const { data: commentsData } = await supabase.from('post_comments').select('*')
+    const { data: likesData } = await supabase.from('likes').select('*')
+    const { data: repliesData } = await supabase.from('replies').select('*').order('created_at', { ascending: true })
 
     const userIds = Array.from(new Set([
-      ...postsData.map((p: any) => p.user_id),
-      ...(commentsData || []).map((c: any) => c.user_id),
+      ...postsData.map((p: any) => p.author_id),
+      ...(repliesData || []).map((r: any) => r.author_id),
     ].filter(Boolean)))
 
     const profilesMap: Record<string, any> = {}
@@ -801,45 +801,43 @@ useEffect(() => {
     const likesByPost: Record<string, number> = {}
     ;(likesData || []).forEach((l: any) => { likesByPost[l.post_id] = (likesByPost[l.post_id] || 0) + 1 })
 
-    const commentsByParent: Record<string, any[]> = {}
-    ;(commentsData || []).forEach((c: any) => {
-      const key = c.parent_comment_id || `post:${c.post_id}`
-      ;(commentsByParent[key] = commentsByParent[key] || []).push(c)
+    // The live `replies` table is flat (no parent_comment_id) — every
+    // reply belongs directly to a post, not to another reply. A "reply
+    // to a reply" still submits here (see submitNestedReply) with an
+    // "@Name" text prefix rather than a true nested child.
+    const repliesByPost: Record<string, any[]> = {}
+    ;(repliesData || []).forEach((r: any) => {
+      (repliesByPost[r.post_id] = repliesByPost[r.post_id] || []).push(r)
     })
-    const buildReplies = (postId: string, parentId: string | null): any[] => {
-      const key = parentId || `post:${postId}`
-      return (commentsByParent[key] || [])
-        .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        .map((c: any) => {
-          const prof = profileFor(c.user_id)
-          return {
-            id: c.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
-            time: timeAgo(c.created_at), text: c.content, likes: 0,
-            replies: buildReplies(postId, c.id),
-          }
-        })
-    }
+    const buildReplies = (postId: string): any[] =>
+      (repliesByPost[postId] || []).map((r: any) => {
+        const prof = profileFor(r.author_id)
+        return {
+          id: r.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
+          time: timeAgo(r.created_at), text: r.content, likes: 0, replies: [],
+        }
+      })
 
     const postsById: Record<string, any> = {}
     postsData.forEach((p: any) => { postsById[p.id] = p })
 
     const reshareCounts: Record<string, number> = {}
-    postsData.forEach((p: any) => { if (p.is_reshare && p.original_post_id) reshareCounts[p.original_post_id] = (reshareCounts[p.original_post_id] || 0) + 1 })
+    postsData.forEach((p: any) => { if (p.original_post_id) reshareCounts[p.original_post_id] = (reshareCounts[p.original_post_id] || 0) + 1 })
 
     const mapPost = (p: any) => {
-      const prof = profileFor(p.user_id)
+      const prof = profileFor(p.author_id)
       return {
         id: p.id, avatar: prof.avatar_emoji || '☕', name: prof.username || 'Member', loc: prof.location || 'GMT',
-        time: timeAgo(p.created_at), category: p.category, content: p.content,
-        images: p.images || [], likes: likesByPost[p.id] || 0, author_id: p.user_id,
-        replies: buildReplies(p.id, null),
+        time: timeAgo(p.created_at), category: p.category_id, content: p.content,
+        images: p.images || [], likes: likesByPost[p.id] || 0, author_id: p.author_id,
+        replies: buildReplies(p.id), hot: !!p.is_hot,
       }
     }
 
     const mapped = postsData.map((p: any) => {
       const base = mapPost(p)
-      if (p.is_reshare) {
-        const orig = p.original_post_id ? postsById[p.original_post_id] : null
+      if (p.original_post_id) {
+        const orig = postsById[p.original_post_id]
         return { ...base, isReshare: true, reshareCount: reshareCounts[p.id] || 0, original: orig ? mapPost(orig) : null }
       }
       return { ...base, reshareCount: reshareCounts[p.id] || 0 }
@@ -853,7 +851,7 @@ useEffect(() => {
 useEffect(() => {
   if (!userId || !postsLoaded) return
   async function loadMyLikes() {
-    const { data } = await supabase.from('post_likes').select('post_id').eq('user_id', userId)
+    const { data } = await supabase.from('likes').select('post_id').eq('profile_id', userId)
     if (data) setLiked(new Set(data.map((l: any) => l.post_id)))
   }
   loadMyLikes()
