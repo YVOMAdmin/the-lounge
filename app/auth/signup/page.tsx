@@ -68,6 +68,7 @@ export default function SignupPage() {
           avatar_emoji: form.avatar_emoji,
           location: form.location,
           membership_type: form.membership_type,
+          signed_up_as_member: form.membership_type === 'member',
           profession: form.profession,
           birth_month: birthMonth,
           birth_year: birthYear,
@@ -82,9 +83,12 @@ export default function SignupPage() {
     // Best-effort: if signUp returns an active session immediately, also
     // write these fields directly so they land even if the profiles-row
     // creation trigger hasn't been updated to read the new metadata keys.
+    // signed_up_as_member is a frozen snapshot of this choice — it is
+    // never updated again, even if the user later upgrades from Free.
     if (data.user) {
       await supabase.from('profiles').update({
         membership_type: form.membership_type,
+        signed_up_as_member: form.membership_type === 'member',
         profession: form.profession,
         birth_month: birthMonth,
         birth_year: birthYear,

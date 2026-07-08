@@ -40,8 +40,17 @@ export async function POST(req: Request) {
 
   // Founder status is decided at approval time, not at signup — only
   // approved members count toward the founder cap (see FOUNDER_LIMIT).
+  // signed_up_as_member is a frozen snapshot of the original signup
+  // choice (see app/auth/signup/page.tsx) — free-tier signups are never
+  // eligible, even while slots remain open, and this doesn't change if
+  // they later upgrade via the Upgrade Membership button.
+  const { data: signupProfile } = await supabase
+    .from('profiles')
+    .select('signed_up_as_member')
+    .eq('id', userId)
+    .single()
   const founderCount = await getFounderCount(supabase)
-  const isFounder = founderCount < FOUNDER_LIMIT
+  const isFounder = !!signupProfile?.signed_up_as_member && founderCount < FOUNDER_LIMIT
 
   const { error } = await supabase
     .from('profiles')

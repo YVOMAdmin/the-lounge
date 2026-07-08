@@ -329,6 +329,12 @@ const [userEmail, setUserEmail] = useState<string | null>(null)
 const [userId, setUserId] = useState<string | null>(null)
 const [isFounder, setIsFounder] = useState(false)
 const isAdmin = userEmail === 'hello@theloungecommunity.co.uk'
+const [membershipType, setMembershipType] = useState('member')
+const [signedUpAsMember, setSignedUpAsMember] = useState(false)
+const isFreeTier = !isAdmin && membershipType === 'free'
+const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+const [upgrading, setUpgrading] = useState(false)
+const [upgradeDone, setUpgradeDone] = useState(false)
 const [notifications, setNotifications] = useState<any[]>([])
 const [notifPref, setNotifPref] = useState<boolean>(() => {
   if (typeof window === 'undefined') return true;
@@ -642,6 +648,26 @@ const toggleNotifPref = (checked: boolean) => {
   setNotifPref(checked);
   if (typeof window !== 'undefined') localStorage.setItem('lounge_notif_pref', checked ? 'true' : 'false');
 };
+const upgradeMembership = async () => {
+  if (!userId) return;
+  setUpgrading(true);
+  // TODO(item 25 — Stripe): this instantly flips membership_type for
+  // free during the beta/Founders Offer, since Member is £0 right now.
+  // Once Stripe billing is live, replace this with a real checkout
+  // session for anyone upgrading after that point — this direct DB
+  // write should only remain as a fallback for £0-price periods, if at
+  // all. It intentionally never touches signed_up_as_member, so
+  // upgrading here can never retroactively grant the Founder badge.
+  const { error } = await supabase.from('profiles').update({ membership_type: 'member' }).eq('id', userId);
+  if (!error) {
+    setMembershipType('member');
+    setUpgradeDone(true);
+    showToast("You're now a Member — welcome! 🎉");
+  } else {
+    showToast('Failed to upgrade. Please try again.');
+  }
+  setUpgrading(false);
+};
 useEffect(() => {
   async function checkApproval() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -652,7 +678,7 @@ useEffect(() => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_approved, is_founder, username, avatar_emoji, location, newsletter_opted_in')
+        .select('is_approved, is_founder, username, avatar_emoji, location, newsletter_opted_in, membership_type, signed_up_as_member')
         .eq('id', session.user.id)
         .single()
       if (profile && !profile.is_approved) {
@@ -667,6 +693,8 @@ window.location.href = '/auth/pending'
         setMyLoc(profile.location || "GMT")
         setProfileForm({ username: profile.username || "", location: profile.location || "" })
         setNewsletterOptedIn(!!profile.newsletter_opted_in)
+        setMembershipType(profile.membership_type || "member")
+        setSignedUpAsMember(!!profile.signed_up_as_member)
       }
     }
   }
@@ -1178,6 +1206,16 @@ useEffect(() => {
       .job-day-list-status{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8a2020;border:1px solid #8a2020;border-radius:100px;padding:1px 7px}
       .job-day-list-company{font-size:12px;color:#9E9587;margin-top:2px}
 
+      /* Free tier lock */
+      .locked-wrap{position:relative}
+      .locked-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:10;background:rgba(245,240,232,0.4)}
+      .locked-icon{font-size:36px;margin-bottom:10px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15))}
+      .locked-title{font-family:'Fraunces',serif;font-weight:700;font-size:19px;color:#1A1814;margin-bottom:6px}
+      .locked-sub{font-size:13px;color:#5A5248;max-width:280px;line-height:1.5;margin-bottom:18px}
+      .upgrade-btn{background:#F9C4A0;color:#fff;border:none;border-radius:100px;padding:12px 28px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(249,196,160,0.5);transition:all 0.15s}
+      .upgrade-btn:hover{background:#d4724a}
+      .upgrade-note{font-size:12px;color:#9E9587;line-height:1.6;margin-bottom:16px;background:#FAFAF8;border:1px solid #E8E3DC;border-radius:10px;padding:10px 12px}
+
       /* Sidebar */
 .rail-card{background:#fff;border:2px solid #F9C4A0;border-radius:14px;padding:16px;margin-bottom:12px}
 .rail-support-link{display:block;color:#7B5EA7;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-decoration:none}
@@ -1336,9 +1374,9 @@ useEffect(() => {
 <a href="/" style={{display:'block'}}><img src="/community-logo.png" alt="The Lounge Community" style={{height:'120px',width:'auto',flexShrink:0,display:'block',margin:0}}/></a>
         </div>
         <div className="hdr-row3">
-          <button className="btn-row3" onClick={()=>setComposePoll(true)}>+ Poll</button>
-          <button className="btn-row3" onClick={()=>setCompose(true)}>+ Post</button>
-          <button className="btn-row3" onClick={()=>setActiveTab("suggestions")}>📮 Suggestion Box</button>
+          <button className="btn-row3" onClick={()=>isFreeTier?setUpgradeModalOpen(true):setComposePoll(true)}>+ Poll</button>
+          <button className="btn-row3" onClick={()=>isFreeTier?setUpgradeModalOpen(true):setCompose(true)}>+ Post</button>
+          <button className="btn-row3" onClick={()=>isFreeTier?setUpgradeModalOpen(true):setActiveTab("suggestions")}>📮 Suggestion Box</button>
         </div>
         </div>
       </header>
@@ -1353,6 +1391,9 @@ useEffect(() => {
               <button className={`tab ${activeTab==="resources"?"on":""}`} onClick={()=>setActiveTab("resources")}>📌 Resources</button>
               <button className={`tab ${activeTab==="jobs"?"on":""}`} onClick={()=>setActiveTab("jobs")}>💼 Job Board</button>
             </div>
+
+            <div className="locked-wrap">
+            <div style={(isFreeTier&&activeTab!=="jobs")?{filter:"blur(6px)",pointerEvents:"none",userSelect:"none"}:undefined}>
 
             {/* ── FEED ── */}
             {activeTab==="feed"&&<>
@@ -1691,6 +1732,17 @@ useEffect(() => {
               </div>
               </div>);
             })()}
+
+            </div>
+            {isFreeTier&&activeTab!=="jobs"&&(
+              <div className="locked-overlay">
+                <div className="locked-icon">🔒</div>
+                <div className="locked-title">Members Only</div>
+                <div className="locked-sub">Upgrade your membership to unlock the Feed, Events, Resources and Suggestion Box.</div>
+                <button className="upgrade-btn" onClick={()=>setUpgradeModalOpen(true)}>⭐ Upgrade Membership</button>
+              </div>
+            )}
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -2028,6 +2080,37 @@ useEffect(() => {
         </div>
         );
       })()}
+
+      {/* Upgrade Membership */}
+      {upgradeModalOpen&&(
+        <div className="overlay" onClick={(e:any)=>e.target===e.currentTarget&&!upgrading&&setUpgradeModalOpen(false)}>
+          <div className="modal" style={{maxWidth:380}}>
+            <div className="modal-title-row">
+              <div className="modal-title">⭐ Upgrade Membership</div>
+              <button className="modal-close" onClick={()=>setUpgradeModalOpen(false)} aria-label="Close">✕</button>
+            </div>
+            {upgradeDone?(
+              <>
+                <div style={{fontSize:14,color:"#1A1814",lineHeight:1.6,marginBottom:20}}>🎉 You're now a Member — welcome! The Feed, Events, Resources and Suggestion Box are unlocked.</div>
+                <button className="btn-submit" style={{width:"100%"}} onClick={()=>{setUpgradeModalOpen(false);setUpgradeDone(false);}}>Continue</button>
+              </>
+            ):(
+              <>
+                <div style={{fontSize:13,color:"#6B6358",lineHeight:1.6,marginBottom:16}}>
+                  During our beta, Membership is <strong>£0</strong> — full access to the Feed, Events, Resources and the Suggestion Box, on top of the Job Board you already have.
+                </div>
+                {!signedUpAsMember&&(
+                  <div className="upgrade-note">Note: the 🌟 Founder badge is reserved for members who chose Member at signup — upgrading now won't grant it retroactively.</div>
+                )}
+                <div className="modal-foot">
+                  <button className="btn-cancel" onClick={()=>setUpgradeModalOpen(false)} disabled={upgrading}>Cancel</button>
+                  <button className="btn-submit" onClick={upgradeMembership} disabled={upgrading}>{upgrading?"Upgrading…":"Upgrade Now"}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {toast&&<div className="toast">{toast}</div>}
     </div>
