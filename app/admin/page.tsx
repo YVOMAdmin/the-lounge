@@ -234,7 +234,8 @@ export default function AdminPage() {
   }
 
   async function fetchEvents() {
-    const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false })
+    const res = await fetch('/api/admin-events')
+    const { data } = await res.json()
     if (data) {
       setPendingEvents(data.filter((e: Event) => !e.is_approved))
       setApprovedEvents(data.filter((e: Event) => e.is_approved))
@@ -242,7 +243,8 @@ export default function AdminPage() {
   }
 
   async function fetchSuggestions() {
-    const { data } = await supabase.from('suggestions').select('*').order('created_at', { ascending: false })
+    const res = await fetch('/api/admin-suggestions')
+    const { data } = await res.json()
     if (data) {
       setPendingSuggestions(data.filter((s: Suggestion) => !s.is_approved))
       setApprovedSuggestions(data.filter((s: Suggestion) => s.is_approved))
@@ -251,45 +253,45 @@ export default function AdminPage() {
 
   async function approveEvent(id: string) {
     setProcessing(id)
-    await supabase.from('events').update({ is_approved: true }).eq('id', id)
+    await fetch('/api/admin-events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'approve' }) })
     await fetchEvents()
     setProcessing(null)
   }
 
   async function rejectEvent(id: string) {
     setProcessing(id)
-    await supabase.from('events').delete().eq('id', id)
+    await fetch('/api/admin-events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'reject' }) })
     await fetchEvents()
     setProcessing(null)
   }
 
   async function approveSuggestion(id: string) {
     setProcessing(id)
-    await supabase.from('suggestions').update({ is_approved: true }).eq('id', id)
+    await fetch('/api/admin-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'approve' }) })
     await fetchSuggestions()
     setProcessing(null)
   }
 
   async function rejectSuggestion(id: string) {
     setProcessing(id)
-    await supabase.from('suggestions').delete().eq('id', id)
+    await fetch('/api/admin-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'reject' }) })
     await fetchSuggestions()
     setProcessing(null)
   }
 
   async function approveMember(id: string) {
     setProcessing(id)
-    const { data: member } = await supabase.from('profiles').select('username, email').eq('id', id).single()
-    await fetch('/api/admin-profiles', {
+    const res = await fetch('/api/admin-profiles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     })
-    if (member?.email) {
+    const { username, email } = await res.json()
+    if (email) {
       await fetch('/api/welcome-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: member.username, email: member.email }),
+        body: JSON.stringify({ username, email }),
       })
     }
     await fetchMembers()

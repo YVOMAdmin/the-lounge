@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   // they later upgrade via the Upgrade Membership button.
   const { data: signupProfile } = await supabase
     .from('profiles')
-    .select('signed_up_as_member')
+    .select('signed_up_as_member, username, email')
     .eq('id', userId)
     .single()
   const founderCount = await getFounderCount(supabase)
@@ -61,5 +61,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true })
+  // Returned so the admin panel can send the welcome email without
+  // needing its own (anon-key, no-session) read of another member's
+  // profile — profiles.email is not readable by anon/authenticated,
+  // only via this service-role route.
+  return NextResponse.json({ success: true, username: signupProfile?.username, email: signupProfile?.email })
 }

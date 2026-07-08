@@ -1,0 +1,49 @@
+-- Run this in the Supabase SQL Editor (Database > SQL Editor) — it is not
+-- applied automatically. This repo has no Supabase CLI project linked, so
+-- there's no way to run migrations from the codebase itself.
+--
+-- Found via a full RLS audit (pg_policies dump across the whole public
+-- schema). Two issues on public.profiles, fixed together:
+--
+-- 1. CRITICAL: "Service role can do everything on profiles" is a policy
+--    for cmd=ALL, USING (true), WITH CHECK (true) — but its roles are
+--    {public}, NOT {service_role} despite the name. Since RLS policies
+--    for the same command are OR'd together, this one unconditionally
+--    true policy overrides every other protection on the table: any
+--    caller (including fully anonymous requests with just the public
+--    anon key) can currently read every column of every profile
+--    (including email), update any profile's is_approved/is_founder/
+--    membership_type/username, or delete any profile outright — there
+--    is no other DELETE policy on profiles, so this is the only thing
+--    currently permitting deletes at all.
+--
+--    Supabase's service_role already bypasses RLS entirely at the
+--    connection level (it doesn't evaluate policies at all), so this
+--    policy was never necessary for its stated purpose and has no
+--    legitimate function — dropping it is safe. Verified first that no
+--    client code or API route relies on it: every app/api/*/route.ts
+--    that touches Supabase uses the service-role key (unaffected by
+--    RLS regardless), and the two remaining legitimate policies ("Users
+--    can update own profile" / "profiles: update own", both scoped to
+--    auth.uid() = id) already cover every real update path used by
+--    app/components/Lounge.tsx (saveProfile, saveAvatar,
+--    toggleNewsletter, upgradeMembership).
+--
+-- 2. MEDIUM: profiles.email is readable by any authenticated member via
+--    the existing broad SELECT policies ("Allow authenticated users to
+--    read all profiles", "profiles: read all" — both auth.role() =
+--    'authenticated', no column restriction). RLS is row-level, not
+--    column-level, so the separately-existing "Hide email from other
+--    members" policy (auth.uid() = id OR service_role) can't actually
+--    hide just that one column once a different permissive policy
+--    grants full-row access. Confirmed no client code needs
+--    profiles.email for anyone other than the logged-in user's own row
+--    (Lounge.tsx's cross-member profile queries only ever select id,
+--    username, avatar_emoji, location) — so this closes the leak with
+--    a column-level REVOKE instead of touching any row policy or app
+--    code. service_role is unaffected (grants are separate from RLS,
+--    and service_role already has full access independent of this).
+
+drop policy if exists "Service role can do everything on profiles" on public.profiles;
+
+revoke select (email) on public.profiles from authenticated, anon;
