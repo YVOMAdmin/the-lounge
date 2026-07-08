@@ -1115,18 +1115,18 @@ useEffect(() => {
       .section-divider-text{font-size:10px;color:#9E9587;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
 
       /* ── Job Board ── */
-      .job-cabinet{display:flex;align-items:flex-end;flex-wrap:wrap;margin-bottom:0;position:relative;z-index:1}
-      .job-cabinet-tab{padding:9px 15px 11px;border-radius:10px 10px 0 0;border:1px solid rgba(0,0,0,0.1);border-bottom:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#1A1814;cursor:pointer;white-space:nowrap;transition:all 0.15s;margin-left:-6px;transform:translateY(7px);z-index:1;opacity:0.75}
-      .job-cabinet-tab:first-child{margin-left:0}
+      .job-cabinet{display:flex;align-items:flex-end;flex-wrap:wrap;gap:6px 6px;margin-bottom:0;position:relative;z-index:1}
+      .job-cabinet-tab{padding:9px 15px 11px;border-radius:10px 10px 0 0;border:1px solid rgba(0,0,0,0.1);border-bottom:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#1A1814;cursor:pointer;white-space:nowrap;transition:all 0.15s;flex:0 0 auto;opacity:0.75}
       .job-cabinet-tab:hover{opacity:0.95}
-      .job-cabinet-tab.active{transform:translateY(0);z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
-      .job-cabinet-body{border:1px solid rgba(0,0,0,0.1);border-radius:0 14px 14px 14px;padding:20px;position:relative;z-index:5}
-      .job-cal-cell{cursor:default;min-height:82px;align-items:flex-start;padding-top:6px}
+      .job-cabinet-tab.active{z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
+      .job-cabinet-body{border:2px solid rgba(0,0,0,0.1);border-radius:14px;padding:20px;position:relative;z-index:5;overflow:hidden}
+      .job-cal-cell{cursor:default;min-height:100px;align-items:flex-start;padding-top:6px}
       .job-cal-cell:hover{background:transparent}
       .postit-stack{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
-      .postit{position:relative;width:50px;height:50px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
+      .postit{position:relative;width:60px;min-height:56px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:7px 5px 4px;transition:transform 0.15s}
       .postit:hover{transform:scale(1.08) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:14px;position:absolute;top:-8px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
+      .postit-title{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;line-height:1.2;color:#1A1208;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
       .postit-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;font-size:10px;font-family:'Inter',sans-serif;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:20}
       .postit:hover .postit-tooltip{opacity:1;visibility:visible}
       .postit-more{font-size:9px;color:#9E9587;font-weight:600;align-self:center}
@@ -1152,8 +1152,6 @@ useEffect(() => {
 .rail-support-link{display:block;color:#7B5EA7;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-decoration:none}
 .rail-support-link:hover{text-decoration:underline}
 .rail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#F9C4A0;margin-bottom:10px}
-.rail-num{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:#F9C4A0;letter-spacing:-1px;line-height:1}
-.rail-sub{font-size:11px;color:#9E9587;margin-top:2px;margin-bottom:10px}
       .tag{display:inline-block;font-size:12px;color:#7C5CFC;margin-bottom:7px;cursor:pointer}
       .tag:hover{text-decoration:underline}
       .welcome{background:linear-gradient(135deg,#FFFBF5 0%,#F0EDE8 100%);border:1px solid #E8E3DC;border-radius:12px;padding:16px;margin-bottom:12px}
@@ -1642,6 +1640,7 @@ useEffect(() => {
                               {dayJobs.slice(0,3).map((job:any,pi:number)=>(
                                 <div key={job.id} className="postit" style={{background:tabInfo.color,transform:`rotate(${pi%2===0?-2:2}deg)`}} onClick={()=>setSelectedJob(job)}>
                                   <span className="postit-pin">⭐</span>
+                                  <span className="postit-title">{job.title}</span>
                                   <span className="postit-tooltip">{job.title} · {job.company}</span>
                                 </div>
                               ))}
@@ -1668,11 +1667,6 @@ useEffect(() => {
             </div>
             <div className="rail-card">
               <a href="/support" className="rail-support-link">Support Beyond Our Walls 🧡</a>
-            </div>
-            <div className="rail-card">
-              <div className="rail-title">Right now</div>
-              <div className="rail-num">7.1k</div>
-              <div className="rail-sub">posts today</div>
             </div>
             {activeTab==="events"&&(
               <div className="rail-card">
