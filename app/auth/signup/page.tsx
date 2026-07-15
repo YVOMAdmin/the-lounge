@@ -59,7 +59,7 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
@@ -80,22 +80,15 @@ export default function SignupPage() {
     })
     if (error) { setError(error.message); setLoading(false); return }
 
-    // Best-effort: if signUp returns an active session immediately, also
-    // write these fields directly so they land even if the profiles-row
-    // creation trigger hasn't been updated to read the new metadata keys.
-    // signed_up_as_member is a frozen snapshot of this choice — it is
-    // never updated again, even if the user later upgrades from Free.
-    if (data.user) {
-      await supabase.from('profiles').update({
-        membership_type: form.membership_type,
-        signed_up_as_member: form.membership_type === 'member',
-        profession: form.profession,
-        birth_month: birthMonth,
-        birth_year: birthYear,
-        terms_accepted: form.terms_accepted,
-        newsletter_opted_in: form.newsletter_opted_in,
-      }).eq('id', data.user.id)
-    }
+    // All profile fields (including terms_accepted, newsletter_opted_in,
+    // signed_up_as_member) are set by the handle_new_user() DB trigger
+    // from this signUp() call's options.data, since that trigger runs
+    // with a privileged role regardless of whether a session comes back
+    // here. A prior client-side follow-up .update() used to try to write
+    // these fields directly, but it silently failed on every signup: this
+    // project requires email confirmation, so signUp() never returns an
+    // active session, and the update ran unauthenticated as `anon`, which
+    // has never held UPDATE privilege on profiles.
 
     setDone(true)
   }
