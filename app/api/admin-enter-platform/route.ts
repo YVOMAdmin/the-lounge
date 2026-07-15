@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
-
-const MEMBER_EMAIL = 'hello@theloungecommunity.co.uk'
+import { ADMIN_EMAIL } from '@/lib/admin'
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
@@ -10,6 +9,10 @@ export async function GET(request: NextRequest) {
 
   if (!adminAuth?.value) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Admin email not configured' }, { status: 500 })
   }
 
   const { origin } = new URL(request.url)
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
-    email: MEMBER_EMAIL,
+    email: ADMIN_EMAIL,
     options: { redirectTo: `${origin}/community` },
   })
 

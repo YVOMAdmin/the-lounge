@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef, memo } from "react";
 import { createBrowserClient } from '@supabase/ssr'
+import { isAdminEmail } from '@/lib/admin'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -328,7 +329,7 @@ export default function Lounge() {
 const [userEmail, setUserEmail] = useState<string | null>(null)
 const [userId, setUserId] = useState<string | null>(null)
 const [isFounder, setIsFounder] = useState(false)
-const isAdmin = userEmail === 'hello@theloungecommunity.co.uk'
+const isAdmin = isAdminEmail(userEmail)
 const [membershipType, setMembershipType] = useState('member')
 const [signedUpAsMember, setSignedUpAsMember] = useState(false)
 const isFreeTier = !isAdmin && membershipType === 'free'
@@ -1369,7 +1370,7 @@ useEffect(() => {
 </div>
           <button className="btn-icon-sm" onClick={()=>setLikesOpen(true)} aria-label="Your likes">❤️</button>
           <button className="btn-icon-sm" onClick={()=>setSettingsOpen(true)} aria-label="Settings">⚙️</button>
-          {userEmail === 'hello@theloungecommunity.co.uk' && (
+          {isAdmin && (
   <a href="/admin" className="btn-icon-sm-solid" style={{ textDecoration: 'none' }}>
     ← Admin
   </a>
