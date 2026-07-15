@@ -49,6 +49,34 @@ type JobListing = {
   closed_at?: string | null
 }
 
+type Resource = {
+  id: string
+  emoji: string
+  title: string
+  description: string | null
+  url: string | null
+  category: 'templates' | 'courses'
+  position: number
+}
+
+type Contact = {
+  id: string
+  name: string
+  role: string
+  bio: string | null
+  photo_url: string | null
+  email: string
+  position: number
+}
+
+const RESOURCE_CATEGORIES: { id: 'templates' | 'courses', label: string }[] = [
+  { id: 'templates', label: 'Templates & Guides' },
+  { id: 'courses', label: 'Courses' },
+]
+
+const EMPTY_RESOURCE_FORM = { emoji: '📄', title: '', description: '', url: '', category: 'templates' as 'templates' | 'courses', position: 0 }
+const EMPTY_CONTACT_FORM = { name: '', role: '', bio: '', photo_url: '', email: '', position: 0 }
+
 const JOB_TITLES = [
   'Executive Assistant', 'Personal Assistant', 'Virtual Assistant', 'Office Manager',
   'Operations Coordinator', 'Chief of Staff', 'Admin Assistant', 'Junior PA / Entry Level',
@@ -169,9 +197,33 @@ export default function AdminPage() {
   const [jobListings, setJobListings] = useState<JobListing[]>([])
   const [jobDeleting, setJobDeleting] = useState<string | null>(null)
 
+  const [resources, setResources] = useState<Resource[]>([])
+  const [resourceForm, setResourceForm] = useState(EMPTY_RESOURCE_FORM)
+  const [resourceEditingId, setResourceEditingId] = useState<string | null>(null)
+  const [resourceSubmitting, setResourceSubmitting] = useState(false)
+  const [resourceError, setResourceError] = useState('')
+  const [resourceDeleting, setResourceDeleting] = useState<string | null>(null)
+
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [contactForm, setContactForm] = useState(EMPTY_CONTACT_FORM)
+  const [contactEditingId, setContactEditingId] = useState<string | null>(null)
+  const [contactSubmitting, setContactSubmitting] = useState(false)
+  const [contactError, setContactError] = useState('')
+  const [contactDeleting, setContactDeleting] = useState<string | null>(null)
+  const [contactPhotoFile, setContactPhotoFile] = useState<File | null>(null)
+  const [contactPhotoPreview, setContactPhotoPreview] = useState<string | null>(null)
+  const [contactPhotoUploading, setContactPhotoUploading] = useState(false)
+
+  useEffect(() => {
+    if (!contactPhotoFile) { setContactPhotoPreview(null); return }
+    const url = URL.createObjectURL(contactPhotoFile)
+    setContactPhotoPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [contactPhotoFile])
+
   useEffect(() => {
     fetch('/api/admin-auth', { method: 'GET' })
-      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents(); fetchSuggestions(); fetchJobListings() } })
+      .then(r => { if (r.ok) { setAuthed(true); fetchMembers(); fetchEvents(); fetchSuggestions(); fetchJobListings(); fetchResources(); fetchContacts() } })
       .catch(() => {})
   }, [])
 
@@ -190,6 +242,8 @@ export default function AdminPage() {
         fetchEvents()
         fetchSuggestions()
         fetchJobListings()
+        fetchResources()
+        fetchContacts()
       } else {
         setLoginError('Incorrect password.')
       }
@@ -220,6 +274,138 @@ export default function AdminPage() {
     await supabase.from('job_listings').update({ is_active: false, status, closed_at: new Date().toISOString() }).eq('id', id)
     await fetchJobListings()
     setJobDeleting(null)
+  }
+
+  async function fetchResources() {
+    const res = await fetch('/api/admin-resources')
+    const { data } = await res.json()
+    if (data) setResources(data)
+  }
+
+  function startEditResource(r: Resource) {
+    setResourceEditingId(r.id)
+    setResourceForm({ emoji: r.emoji, title: r.title, description: r.description || '', url: r.url || '', category: r.category, position: r.position })
+    setResourceError('')
+  }
+
+  function cancelEditResource() {
+    setResourceEditingId(null)
+    setResourceForm(EMPTY_RESOURCE_FORM)
+    setResourceError('')
+  }
+
+  async function submitResource() {
+    setResourceError('')
+    if (!resourceForm.title.trim()) {
+      setResourceError('Title is required.')
+      return
+    }
+    setResourceSubmitting(true)
+    const res = await fetch('/api/admin-resources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resourceEditingId ? { action: 'update', id: resourceEditingId, ...resourceForm } : { action: 'create', ...resourceForm }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setResourceError(data.error || 'Failed to save resource.')
+    } else {
+      cancelEditResource()
+      await fetchResources()
+    }
+    setResourceSubmitting(false)
+  }
+
+  async function deleteResource(id: string) {
+    setResourceDeleting(id)
+    await fetch('/api/admin-resources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    })
+    if (resourceEditingId === id) cancelEditResource()
+    await fetchResources()
+    setResourceDeleting(null)
+  }
+
+  async function fetchContacts() {
+    const res = await fetch('/api/admin-contacts')
+    const { data } = await res.json()
+    if (data) setContacts(data)
+  }
+
+  function startEditContact(c: Contact) {
+    setContactEditingId(c.id)
+    setContactForm({ name: c.name, role: c.role, bio: c.bio || '', photo_url: c.photo_url || '', email: c.email, position: c.position })
+    setContactPhotoFile(null)
+    setContactError('')
+  }
+
+  function cancelEditContact() {
+    setContactEditingId(null)
+    setContactForm(EMPTY_CONTACT_FORM)
+    setContactPhotoFile(null)
+    setContactError('')
+  }
+
+  async function submitContact() {
+    setContactError('')
+    if (!contactForm.name.trim() || !contactForm.role.trim() || !contactForm.email.trim()) {
+      setContactError('Name, role and email are required.')
+      return
+    }
+    setContactSubmitting(true)
+
+    let photoUrl = contactForm.photo_url
+    if (contactPhotoFile) {
+      setContactPhotoUploading(true)
+      const formData = new FormData()
+      formData.append('images', contactPhotoFile)
+      try {
+        const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData })
+        const uploadData = await uploadRes.json()
+        if (!uploadRes.ok) {
+          setContactError(uploadData.error || 'Failed to upload photo.')
+          setContactSubmitting(false)
+          setContactPhotoUploading(false)
+          return
+        }
+        photoUrl = uploadData.urls?.[0] || photoUrl
+      } catch {
+        setContactError('Failed to upload photo.')
+        setContactSubmitting(false)
+        setContactPhotoUploading(false)
+        return
+      }
+      setContactPhotoUploading(false)
+    }
+
+    const payload = { ...contactForm, photo_url: photoUrl }
+    const res = await fetch('/api/admin-contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(contactEditingId ? { action: 'update', id: contactEditingId, ...payload } : { action: 'create', ...payload }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setContactError(data.error || 'Failed to save contact.')
+    } else {
+      cancelEditContact()
+      await fetchContacts()
+    }
+    setContactSubmitting(false)
+  }
+
+  async function deleteContact(id: string) {
+    setContactDeleting(id)
+    await fetch('/api/admin-contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    })
+    if (contactEditingId === id) cancelEditContact()
+    await fetchContacts()
+    setContactDeleting(null)
   }
 
   async function fetchMembers() {
@@ -485,6 +671,131 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+
+        {/* Resources */}
+        <p style={{...s.sectionTitle,marginTop:'28px'}}>Resources — {resourceEditingId ? 'Edit Entry' : 'Add New Entry'}</p>
+        <div style={s.card}>
+          <div style={s.cardAccent}/>
+          <div style={{padding:'20px 24px'}}>
+            {resourceError && <p style={s.error}>{resourceError}</p>}
+
+            <label style={s.fieldLabel}>Category</label>
+            <select style={s.selectInput} value={resourceForm.category} onChange={e=>setResourceForm(f=>({...f, category: e.target.value as 'templates'|'courses'}))}>
+              {RESOURCE_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+
+            <label style={s.fieldLabel}>Emoji</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="📄" value={resourceForm.emoji} onChange={e=>setResourceForm(f=>({...f, emoji: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Title</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="e.g. Email boundary scripts" value={resourceForm.title} onChange={e=>setResourceForm(f=>({...f, title: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Description</label>
+            <textarea style={s.textareaInput} placeholder="Short description" value={resourceForm.description} onChange={e=>setResourceForm(f=>({...f, description: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Link (optional — the arrow on the card only shows up if this is set)</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="https://..." value={resourceForm.url} onChange={e=>setResourceForm(f=>({...f, url: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Position (display order, lower first)</label>
+            <input type="number" style={{...s.input, borderRadius:'12px'}} value={resourceForm.position} onChange={e=>setResourceForm(f=>({...f, position: parseInt(e.target.value)||0}))}/>
+
+            <div style={{display:'flex',gap:'10px'}}>
+              <button style={s.submitBtn} onClick={submitResource} disabled={resourceSubmitting}>{resourceSubmitting ? 'Saving...' : (resourceEditingId ? 'Save Changes →' : 'Add Resource →')}</button>
+              {resourceEditingId && <button style={{...s.submitBtn, backgroundColor:'transparent', color: PURPLE, border:`1.5px solid ${PURPLE}`}} onClick={cancelEditResource}>Cancel</button>}
+            </div>
+          </div>
+        </div>
+
+        <p style={{...s.sectionTitle,marginTop:'28px'}}>Existing Resources</p>
+        {resources.length === 0 ? (
+          <div style={s.empty}><p style={s.emptyText}>No resources yet</p></div>
+        ) : (
+          <div style={{...s.card, overflowX: 'auto' as const}}>
+            <div style={s.cardAccent}/>
+            <table style={s.table}>
+              <thead>
+                <tr>
+                  <th style={s.th}></th>
+                  <th style={s.th}>Title</th>
+                  <th style={s.th}>Category</th>
+                  <th style={s.th}>Link</th>
+                  <th style={s.th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.map(r => (
+                  <tr key={r.id}>
+                    <td style={s.td}>{r.emoji}</td>
+                    <td style={s.td}>{r.title}</td>
+                    <td style={s.td}>{RESOURCE_CATEGORIES.find(c=>c.id===r.category)?.label || r.category}</td>
+                    <td style={s.td}>{r.url ? <a href={r.url} target="_blank" rel="noreferrer" style={{color:ACCENT}}>Link ↗</a> : <span style={{color:'#C4BEB6'}}>—</span>}</td>
+                    <td style={s.td}>
+                      <button style={s.closeRowBtn} onClick={()=>startEditResource(r)}>Edit</button>
+                      <button style={s.deleteRowBtn} onClick={()=>deleteResource(r.id)} disabled={resourceDeleting===r.id}>{resourceDeleting===r.id?'…':'Delete'}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Useful Contacts */}
+        <p style={{...s.sectionTitle,marginTop:'28px'}}>Useful Contacts — {contactEditingId ? 'Edit Entry' : 'Add New Entry'}</p>
+        <div style={s.card}>
+          <div style={s.cardAccent}/>
+          <div style={{padding:'20px 24px'}}>
+            {contactError && <p style={s.error}>{contactError}</p>}
+
+            <label style={s.fieldLabel}>Name</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="e.g. Jane Smith" value={contactForm.name} onChange={e=>setContactForm(f=>({...f, name: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Role / Category</label>
+            <input style={{...s.input, borderRadius:'12px'}} placeholder="e.g. Career Coach" value={contactForm.role} onChange={e=>setContactForm(f=>({...f, role: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Bio</label>
+            <textarea style={s.textareaInput} placeholder="Short bio" value={contactForm.bio} onChange={e=>setContactForm(f=>({...f, bio: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Email</label>
+            <input type="email" style={{...s.input, borderRadius:'12px'}} placeholder="name@example.com" value={contactForm.email} onChange={e=>setContactForm(f=>({...f, email: e.target.value}))}/>
+
+            <label style={s.fieldLabel}>Photo</label>
+            <div style={{marginBottom:'14px', display:'flex', alignItems:'center', gap:'12px'}}>
+              {(contactPhotoPreview || contactForm.photo_url) && (
+                <img src={contactPhotoPreview || contactForm.photo_url} alt="Preview" style={{width:56,height:56,borderRadius:'50%',objectFit:'cover',border:`2px solid ${ACCENT}`}}/>
+              )}
+              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={e=>setContactPhotoFile(e.target.files?.[0] || null)} style={{fontSize:'13px'}}/>
+            </div>
+
+            <label style={s.fieldLabel}>Position (display order, lower first)</label>
+            <input type="number" style={{...s.input, borderRadius:'12px'}} value={contactForm.position} onChange={e=>setContactForm(f=>({...f, position: parseInt(e.target.value)||0}))}/>
+
+            <div style={{display:'flex',gap:'10px'}}>
+              <button style={s.submitBtn} onClick={submitContact} disabled={contactSubmitting}>{contactPhotoUploading ? 'Uploading photo...' : contactSubmitting ? 'Saving...' : (contactEditingId ? 'Save Changes →' : 'Add Contact →')}</button>
+              {contactEditingId && <button style={{...s.submitBtn, backgroundColor:'transparent', color: PURPLE, border:`1.5px solid ${PURPLE}`}} onClick={cancelEditContact}>Cancel</button>}
+            </div>
+          </div>
+        </div>
+
+        <p style={{...s.sectionTitle,marginTop:'28px'}}>Existing Contacts</p>
+        {contacts.length === 0 ? (
+          <div style={s.empty}><p style={s.emptyText}>No contacts yet</p></div>
+        ) : contacts.map(c => (
+          <div key={c.id} style={s.card}>
+            <div style={s.cardAccent}/>
+            <div style={s.cardBody}>
+              <div style={s.avatar}>{c.photo_url ? <img src={c.photo_url} alt={c.name} style={{width:'100%',height:'100%',borderRadius:'10px',objectFit:'cover'}}/> : '🤝'}</div>
+              <div style={s.memberInfo}>
+                <p style={s.memberName}>{c.name}</p>
+                <p style={s.memberMeta}>{c.role} · {c.email}</p>
+              </div>
+              <div style={s.actions}>
+                <button style={s.closeRowBtn} onClick={()=>startEditContact(c)}>Edit</button>
+                <button style={s.deleteRowBtn} onClick={()=>deleteContact(c.id)} disabled={contactDeleting===c.id}>{contactDeleting===c.id?'…':'Delete'}</button>
+              </div>
+            </div>
+          </div>
+        ))}
 
         {/* Pending Suggestions */}
         <p style={s.sectionTitle}>Suggestions Pending Approval</p>

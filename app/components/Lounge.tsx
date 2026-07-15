@@ -51,11 +51,9 @@ const LOCS    = ["EST","GMT","PST","AEST","CET","GMT-5","IST","GMT+8","CST","MST
 const MONTHS  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS    = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-const RESOURCES = [
-  { emoji:"📄", title:"Email boundary scripts", desc:"Copy-paste responses for out-of-hours requests" },
-  { emoji:"🗓", title:"Calendar block templates", desc:"Focus time, admin blocks, no-meeting windows" },
-  { emoji:"💬", title:"Slack status playbook", desc:"Statuses that actually communicate your workload" },
-  { emoji:"🧘", title:"Burnout self-check", desc:"A quiet 5-min read when things feel heavy" },
+const RESOURCE_SECTIONS = [
+  { id: "resources", label: "Resources",       emoji: "📚", color: "#B8F0D0" },
+  { id: "contacts",  label: "Useful Contacts", emoji: "🤝", color: "#FFE5B4" },
 ];
 
 const now = new Date();
@@ -313,6 +311,9 @@ export default function Lounge() {
   const [selectedDay, setSelectedDay] = useState<number|null>(null);
   const [jobListings, setJobListings] = useState<any[]>([]);
   const [jobTab, setJobTab]           = useState("PA/EA");
+  const [resourceSection, setResourceSection] = useState("resources");
+  const [resources, setResources]     = useState<any[]>([]);
+  const [usefulContacts, setUsefulContacts] = useState<any[]>([]);
   const [jobCalMonth, setJobCalMonth] = useState(new Date().getMonth());
   const [jobCalYear, setJobCalYear]   = useState(new Date().getFullYear());
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -724,6 +725,24 @@ useEffect(() => {
   loadSuggestions()
 }, [])
 useEffect(() => {
+  async function loadResources() {
+    const { data } = await supabase
+      .from('resources')
+      .select('*')
+      .order('position', { ascending: true })
+    if (data) setResources(data)
+  }
+  async function loadUsefulContacts() {
+    const { data } = await supabase
+      .from('useful_contacts')
+      .select('*')
+      .order('position', { ascending: true })
+    if (data) setUsefulContacts(data)
+  }
+  loadResources()
+  loadUsefulContacts()
+}, [])
+useEffect(() => {
   async function loadEvents() {
     const { data } = await supabase
       .from('events')
@@ -1090,6 +1109,16 @@ useEffect(() => {
       .resource-arrow{margin-left:auto;color:#C4BEB6;font-size:16px;align-self:center}
       .resources-head{font-family:'Fraunces',serif;font-weight:700;font-size:19px;color:#1A1814;margin-bottom:5px}
       .resources-sub{font-size:13px;color:#6B6358;margin-bottom:20px;line-height:1.6}
+      .contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+      .contact-card{background:#fff;border:1px solid #E8E3DC;border-radius:14px;padding:20px 16px;text-align:center;transition:box-shadow 0.15s,transform 0.15s}
+      .contact-card:hover{box-shadow:0 4px 24px rgba(0,0,0,0.06);transform:translateY(-1px)}
+      .contact-avi{width:56px;height:56px;border-radius:50%;background:#F5F0E8;border:1px solid #E8E3DC;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;overflow:hidden}
+      .contact-avi img{width:100%;height:100%;object-fit:cover}
+      .contact-name{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:#1A1814;margin-bottom:2px}
+      .contact-role{font-size:11px;color:#7B5EA7;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-bottom:8px}
+      .contact-bio{font-size:12px;color:#6B6358;line-height:1.5;margin-bottom:12px}
+      .contact-email{font-size:12px;color:#F9C4A0;font-weight:700;text-decoration:none;word-break:break-all}
+      .contact-email:hover{text-decoration:underline}
 
       /* ── Events ── */
       .events-hero{background:linear-gradient(135deg,#FFFBF5,#F0EDE8);border:1px solid #E8E3DC;border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -1622,17 +1651,63 @@ useEffect(() => {
             </>}
 
             {/* ── RESOURCES ── */}
-            {activeTab==="resources"&&<div>
-              <div className="resources-head">Pinned Resources</div>
-              <div className="resources-sub">Curated by the community — things that actually help with the day-to-day.</div>
-              {RESOURCES.map((r:any,i:number)=>(
-                <div key={i} className="resource-card">
+            {activeTab==="resources"&&(()=>{
+              const templates = resources.filter((r:any)=>r.category==="templates");
+              const courses = resources.filter((r:any)=>r.category==="courses");
+              const sectionInfo = RESOURCE_SECTIONS.find((sec:any)=>sec.id===resourceSection) || RESOURCE_SECTIONS[0];
+              const renderResourceCard = (r:any) => r.url ? (
+                <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer" className="resource-card" style={{textDecoration:"none"}}>
                   <div className="resource-emoji">{r.emoji}</div>
-                  <div><div className="resource-title">{r.title}</div><div className="resource-desc">{r.desc}</div></div>
+                  <div><div className="resource-title">{r.title}</div><div className="resource-desc">{r.description}</div></div>
                   <div className="resource-arrow">→</div>
+                </a>
+              ) : (
+                <div key={r.id} className="resource-card" style={{cursor:"default"}}>
+                  <div className="resource-emoji">{r.emoji}</div>
+                  <div><div className="resource-title">{r.title}</div><div className="resource-desc">{r.description}</div></div>
                 </div>
-              ))}
-            </div>}
+              );
+              return(<div>
+                <div className="job-cabinet">
+                  {RESOURCE_SECTIONS.map((sec:any)=>(
+                    <button key={sec.id} className={`job-cabinet-tab ${resourceSection===sec.id?"active":""}`} style={{background:sec.color}} onClick={()=>setResourceSection(sec.id)}>{sec.emoji} {sec.label}</button>
+                  ))}
+                </div>
+                <div className="job-cabinet-body" style={{background:`${sectionInfo.color}22`,borderColor:sectionInfo.color}}>
+                  {resourceSection==="resources"&&<>
+                    <div className="resources-head">Templates &amp; Guides</div>
+                    <div className="resources-sub">Curated by the community — things that actually help with the day-to-day.</div>
+                    {templates.length===0
+                      ? <div style={{fontSize:12,color:"#9E9587",fontStyle:"italic",marginBottom:20}}>Nothing here yet.</div>
+                      : templates.map(renderResourceCard)}
+
+                    <div className="resources-head" style={{marginTop:24}}>Courses</div>
+                    <div className="resources-sub">Learning worth your time.</div>
+                    {courses.length===0
+                      ? <div style={{fontSize:12,color:"#9E9587",fontStyle:"italic"}}>Nothing here yet.</div>
+                      : courses.map(renderResourceCard)}
+                  </>}
+
+                  {resourceSection==="contacts"&&<>
+                    <div className="resources-head">Useful Contacts</div>
+                    <div className="resources-sub">People our members trust — reach out directly.</div>
+                    {usefulContacts.length===0
+                      ? <div style={{fontSize:12,color:"#9E9587",fontStyle:"italic"}}>Nothing here yet.</div>
+                      : <div className="contacts-grid">
+                          {usefulContacts.map((c:any)=>(
+                            <div key={c.id} className="contact-card">
+                              <div className="contact-avi">{c.photo_url ? <img src={c.photo_url} alt={c.name}/> : "🤝"}</div>
+                              <div className="contact-name">{c.name}</div>
+                              <div className="contact-role">{c.role}</div>
+                              {c.bio && <div className="contact-bio">{c.bio}</div>}
+                              <a className="contact-email" href={`mailto:${c.email}`}>{c.email}</a>
+                            </div>
+                          ))}
+                        </div>}
+                  </>}
+                </div>
+              </div>);
+            })()}
 
             {/* ── SUGGESTION BOX ── */}
             {activeTab==="suggestions"&&<div>
