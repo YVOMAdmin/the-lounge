@@ -1190,7 +1190,7 @@ useEffect(() => {
       .job-cabinet-tab.active{z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
       .job-cabinet-body{border:2px solid rgba(0,0,0,0.1);border-radius:14px;padding:20px;position:relative;z-index:5;overflow:hidden}
       .job-cal-grid{gap:0}
-      .job-cal-cell{cursor:default;aspect-ratio:auto;height:200px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
+      .job-cal-cell{cursor:default;aspect-ratio:auto;height:235px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
       .job-cal-cell:hover{background:transparent}
       .postit-stack{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;width:100%}
       .postit{position:relative;width:calc(100% - 6px);border-radius:2px 8px 6px 9px;box-shadow:0 3px 6px rgba(0,0,0,0.15),0 1px 2px rgba(0,0,0,0.1);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:11px 8px 7px;transition:transform 0.15s;box-sizing:border-box;overflow:hidden}
@@ -1214,7 +1214,7 @@ useEffect(() => {
         .job-cabinet::-webkit-scrollbar{display:none}
         .job-cabinet-body{padding:14px}
         .calendar{padding:8px}
-        .job-cal-cell{height:150px}
+        .job-cal-cell{height:190px}
         .postit-stack{gap:4px;margin-top:5px}
         .postit{border-radius:2px 6px 5px 7px;box-shadow:0 2px 4px rgba(0,0,0,0.18);padding:9px 6px 5px}
         .postit::after{width:8px;height:8px}
