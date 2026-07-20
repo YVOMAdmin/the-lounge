@@ -1198,9 +1198,9 @@ useEffect(() => {
       .postit:hover{transform:scale(1.04) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:15px;position:absolute;top:-7px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))}
       .postit-title{font-family:'Inter',sans-serif;font-size:10px;font-weight:800;line-height:1.25;color:#1A1208;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
-      .postit-company{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:600;color:#3A3530;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-      .postit-meta-line{font-family:'Inter',sans-serif;font-size:7.5px;color:#5A5248;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-      .postit-desc{font-family:'Inter',sans-serif;font-size:7px;color:#6B6358;line-height:1.3;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;width:100%}
+      .postit-company{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:600;color:#3A3530;margin-top:2px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
+      .postit-meta-line{font-family:'Inter',sans-serif;font-size:7.5px;color:#5A5248;margin-top:2px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
+      .postit-desc{font-family:'Inter',sans-serif;font-size:7px;color:#6B6358;line-height:1.3;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
       .postit.closed{filter:grayscale(0.85);opacity:0.7}
       .postit-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);background:rgba(255,251,245,0.92);border:1.5px solid #8a2020;color:#8a2020;font-family:'Inter',sans-serif;font-weight:800;font-size:9px;letter-spacing:0.5px;padding:1px 7px;border-radius:4px;pointer-events:none;text-transform:uppercase;white-space:nowrap}
       .postit-more{font-family:'Inter',sans-serif;font-size:9px;color:#6B6358;font-weight:700;align-self:center;background:#fff;border:1px solid #E2DDD6;border-radius:100px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
@@ -1810,7 +1810,8 @@ useEffect(() => {
                                 <span className="postit-pin">⭐</span>
                                 <div className="postit-title">{featured.title}</div>
                                 <div className="postit-company">{featured.company}</div>
-                                <div className="postit-meta-line">📍 {featured.location}{featured.work_type?` · ${WORK_TYPE_ICON[featured.work_type]||''} ${featured.work_type}`:''}</div>
+                                <div className="postit-meta-line">📍 {featured.location}</div>
+                                {featured.work_type&&<div className="postit-meta-line">{WORK_TYPE_ICON[featured.work_type]||''} {featured.work_type}</div>}
                                 {featured.salary&&<div className="postit-meta-line">💷 {featured.salary}</div>}
                                 {featured.description&&<div className="postit-desc">{featured.description}</div>}
                                 {isClosed&&<span className="postit-stamp">{featured.status==="filled"?"Filled":"Closed"}</span>}
