@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import type { FounderStatus } from '@/lib/founders'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +16,7 @@ const YEARS = Array.from({ length: CURRENT_YEAR - 1900 + 1 }, (_, i) => CURRENT_
 
 const MEMBERSHIP_TYPES = [
   { id: 'free', label: 'Free', price: '£0', priceNote: '/month', features: 'Job Board & Events — read only' },
-  { id: 'member', label: 'Member', price: '£2.00', priceNote: '/month', features: 'Full access · 🌟 Founders Offer' },
+  { id: 'member', label: 'Member', features: 'Full access' },
 ]
 
 function calculateAge(birthMonth: number, birthYear: number): number {
@@ -35,6 +36,14 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [done, setDone] = useState(false)
+  const [founderStatus, setFounderStatus] = useState<FounderStatus>({ status: 'available' })
+
+  useEffect(() => {
+    fetch('/api/founder-count')
+      .then(res => res.json())
+      .then(data => setFounderStatus(data))
+      .catch(() => {})
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -170,6 +179,7 @@ export default function SignupPage() {
           <div style={{display:'flex',gap:10,marginBottom:16}}>
             {MEMBERSHIP_TYPES.map(m=>{
               const selected = form.membership_type === m.id
+              const isMember = m.id === 'member'
               return (
                 <div key={m.id} onClick={()=>setForm(f=>({...f,membership_type:m.id}))}
                   style={{
@@ -178,10 +188,25 @@ export default function SignupPage() {
                     background: selected ? '#FFF8F5' : '#FAFAF8', transition:'all 0.15s',
                   }}>
                   <div style={{fontFamily:"'Lilita One',cursive",fontSize:15,color:'#1A1208',marginBottom:4}}>{m.label}</div>
-                  <div style={{fontSize:17,fontWeight:700,color:'#7B5EA7',marginBottom:6}}>
-                    {m.price}<span style={{fontSize:11,fontWeight:400,color:'#9E9587'}}>{m.priceNote}</span>
+                  {isMember ? (
+                    <div style={{fontSize:17,fontWeight:700,color:'#7B5EA7',marginBottom:6}}>
+                      {founderStatus.status === 'full' ? (
+                        <>£5.00<span style={{fontSize:11,fontWeight:400,color:'#9E9587'}}>/month</span></>
+                      ) : (
+                        <>£0 <span style={{fontSize:13,fontWeight:400,textDecoration:'line-through',color:'#9E9587'}}>£5.00</span><span style={{fontSize:11,fontWeight:400,color:'#9E9587'}}>/month</span></>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{fontSize:17,fontWeight:700,color:'#7B5EA7',marginBottom:6}}>
+                      {m.price}<span style={{fontSize:11,fontWeight:400,color:'#9E9587'}}>{m.priceNote}</span>
+                    </div>
+                  )}
+                  <div style={{fontSize:10,color:'#6B6358',lineHeight:1.5}}>
+                    {m.features}
+                    {isMember && founderStatus.status !== 'full' && (
+                      <> · 🌟 {founderStatus.status === 'low' ? `${founderStatus.remaining} spot${founderStatus.remaining===1?'':'s'} left!` : 'Founders Offer'}</>
+                    )}
                   </div>
-                  <div style={{fontSize:10,color:'#6B6358',lineHeight:1.5}}>{m.features}</div>
                 </div>
               )
             })}
