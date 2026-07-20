@@ -105,6 +105,8 @@ const JOB_LOCATION_GROUPS: Record<string, string[]> = {
 
 const JOB_SOURCES = ['Reed', 'Direct (company website)', 'Member submission']
 
+const JOB_WORK_TYPES = ['Remote', 'Hybrid', 'Office-based']
+
 const ACCENT = '#F9C4A0'
 const PURPLE = '#7B5EA7'
 const GREEN = '#2DC653'
@@ -185,6 +187,7 @@ export default function AdminPage() {
     title: JOB_TITLES[0],
     company: '',
     location: JOB_LOCATION_GROUPS.London[0],
+    work_type: JOB_WORK_TYPES[0],
     salary: '',
     description: '',
     url: '',
@@ -516,6 +519,7 @@ export default function AdminPage() {
         title: jobForm.title,
         company: jobForm.company.trim(),
         location: jobForm.location,
+        work_type: jobForm.work_type,
         salary: jobForm.salary.trim() || null,
         description: jobForm.description.trim() || null,
         url: jobForm.url.trim(),
@@ -529,7 +533,7 @@ export default function AdminPage() {
     } else {
       setJobSuccess(true)
       setJobForm({
-        title: JOB_TITLES[0], company: '', location: JOB_LOCATION_GROUPS.London[0],
+        title: JOB_TITLES[0], company: '', location: JOB_LOCATION_GROUPS.London[0], work_type: JOB_WORK_TYPES[0],
         salary: '', description: '', url: '', source: JOB_SOURCES[0], is_active: true,
       })
       await fetchJobListings()
@@ -620,6 +624,11 @@ export default function AdminPage() {
                   {locs.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                 </optgroup>
               ))}
+            </select>
+
+            <label style={s.fieldLabel}>Work Type</label>
+            <select style={s.selectInput} value={jobForm.work_type} onChange={e=>setJobForm(f=>({...f, work_type: e.target.value}))}>
+              {JOB_WORK_TYPES.map(w => <option key={w} value={w}>{w}</option>)}
             </select>
 
             <label style={s.fieldLabel}>Salary (optional)</label>

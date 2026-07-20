@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   )
 
   if (action === 'create') {
-    const { title, company, location, salary, description, url, source, role_category, is_active } = body
+    const { title, company, location, work_type, salary, description, url, source, role_category, is_active } = body
     if (!company?.trim() || !url?.trim()) {
       return NextResponse.json({ error: 'Company and external URL are required' }, { status: 400 })
     }
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
       title,
       company: company.trim(),
       location,
+      work_type: work_type || null,
       salary: salary?.trim() || null,
       description: description?.trim() || null,
       url: url.trim(),
