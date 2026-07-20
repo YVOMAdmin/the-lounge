@@ -1186,14 +1186,15 @@ useEffect(() => {
       .job-cabinet-tab:hover{opacity:0.95}
       .job-cabinet-tab.active{z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
       .job-cabinet-body{border:2px solid rgba(0,0,0,0.1);border-radius:14px;padding:20px;position:relative;z-index:5;overflow:hidden}
-      .job-cal-cell{cursor:default;min-height:38px;align-items:flex-start;padding-top:6px}
+      .job-cal-grid{gap:0}
+      .job-cal-cell{cursor:default;aspect-ratio:auto;min-height:38px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
       .job-cal-cell:hover{background:transparent}
       .job-cal-cell.has-jobs{min-height:100px}
       .postit-stack{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
       .postit{position:relative;width:60px;min-height:56px;border-radius:3px;box-shadow:0 -3px 6px rgba(0,0,0,0.12),1px 2px 4px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:7px 5px 4px;transition:transform 0.15s}
       .postit:hover{transform:scale(1.08) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:14px;position:absolute;top:-8px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3))}
-      .postit-title{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;line-height:1.2;color:#1A1208;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-width:0}
+      .postit-title{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;line-height:1.2;color:#1A1208;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;flex:1;min-width:0}
       .postit-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;font-size:10px;font-family:'Inter',sans-serif;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 0.15s;pointer-events:none;z-index:20}
       .postit:hover .postit-tooltip{opacity:1;visibility:visible}
       .postit-more{font-family:'Inter',sans-serif;font-size:9px;color:#6B6358;font-weight:700;align-self:center;background:#fff;border:1px solid #E2DDD6;border-radius:100px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
@@ -1781,7 +1782,7 @@ useEffect(() => {
                 </div>
 
                 <div className="calendar" style={{borderTop:`3px solid ${tabInfo.color}`}}>
-                  <div className="cal-grid">
+                  <div className="cal-grid job-cal-grid">
                     {DAYS.map((d:string)=><div key={d} className="cal-day-label">{d}</div>)}
                     {jobCalCells.map((day:any,i:number)=>{
                       if(!day)return<div key={`j${i}`} className="cal-cell job-cal-cell empty"/>;
