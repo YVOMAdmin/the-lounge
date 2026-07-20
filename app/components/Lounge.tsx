@@ -1190,7 +1190,7 @@ useEffect(() => {
       .job-cabinet-tab.active{z-index:10;opacity:1;box-shadow:0 -2px 8px rgba(0,0,0,0.08)}
       .job-cabinet-body{border:2px solid rgba(0,0,0,0.1);border-radius:14px;padding:20px;position:relative;z-index:5;overflow:hidden}
       .job-cal-grid{gap:0}
-      .job-cal-cell{cursor:default;aspect-ratio:auto;height:235px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
+      .job-cal-cell{cursor:default;aspect-ratio:auto;height:140px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
       .job-cal-cell:hover{background:transparent}
       .postit-stack{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;width:100%}
       .postit{position:relative;width:calc(100% - 6px);border-radius:2px 8px 6px 9px;box-shadow:0 3px 6px rgba(0,0,0,0.15),0 1px 2px rgba(0,0,0,0.1);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:11px 8px 7px;transition:transform 0.15s;box-sizing:border-box;overflow:hidden}
@@ -1198,9 +1198,8 @@ useEffect(() => {
       .postit:hover{transform:scale(1.04) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:15px;position:absolute;top:-7px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))}
       .postit-title{font-family:'Inter',sans-serif;font-size:10px;font-weight:800;line-height:1.25;color:#1A1208;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
-      .postit-company{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:600;color:#3A3530;margin-top:2px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
-      .postit-meta-line{font-family:'Inter',sans-serif;font-size:7.5px;color:#5A5248;margin-top:2px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
-      .postit-desc{font-family:'Inter',sans-serif;font-size:7px;color:#6B6358;line-height:1.3;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;width:100%}
+      .postit-company{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:600;color:#3A3530;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+      .postit-meta-line{font-family:'Inter',sans-serif;font-size:7.5px;color:#5A5248;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
       .postit.closed{filter:grayscale(0.85);opacity:0.7}
       .postit-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);background:rgba(255,251,245,0.92);border:1.5px solid #8a2020;color:#8a2020;font-family:'Inter',sans-serif;font-weight:800;font-size:9px;letter-spacing:0.5px;padding:1px 7px;border-radius:4px;pointer-events:none;text-transform:uppercase;white-space:nowrap}
       .postit-more{font-family:'Inter',sans-serif;font-size:9px;color:#6B6358;font-weight:700;align-self:center;background:#fff;border:1px solid #E2DDD6;border-radius:100px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
@@ -1214,7 +1213,7 @@ useEffect(() => {
         .job-cabinet::-webkit-scrollbar{display:none}
         .job-cabinet-body{padding:14px}
         .calendar{padding:8px}
-        .job-cal-cell{height:190px}
+        .job-cal-cell{height:110px}
         .postit-stack{gap:4px;margin-top:5px}
         .postit{border-radius:2px 6px 5px 7px;box-shadow:0 2px 4px rgba(0,0,0,0.18);padding:9px 6px 5px}
         .postit::after{width:8px;height:8px}
@@ -1222,7 +1221,6 @@ useEffect(() => {
         .postit-title{font-size:7.5px;line-height:1.2;-webkit-line-clamp:2}
         .postit-company{font-size:6.5px}
         .postit-meta-line{font-size:6px}
-        .postit-desc{font-size:5.8px;-webkit-line-clamp:2}
         .postit-stamp{font-size:6px;padding:1px 4px}
         .postit-more{font-size:8px;align-self:center}
       }
@@ -1811,9 +1809,6 @@ useEffect(() => {
                                 <div className="postit-title">{featured.title}</div>
                                 <div className="postit-company">{featured.company}</div>
                                 <div className="postit-meta-line">📍 {featured.location}</div>
-                                {featured.work_type&&<div className="postit-meta-line">{WORK_TYPE_ICON[featured.work_type]||''} {featured.work_type}</div>}
-                                {featured.salary&&<div className="postit-meta-line">💷 {featured.salary}</div>}
-                                {featured.description&&<div className="postit-desc">{featured.description}</div>}
                                 {isClosed&&<span className="postit-stamp">{featured.status==="filled"?"Filled":"Closed"}</span>}
                               </div>
                               {dayJobs.length>1&&<button type="button" className="postit-more" onClick={()=>setJobDayModal(day)}>+{dayJobs.length-1} more</button>}
