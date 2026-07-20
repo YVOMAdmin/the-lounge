@@ -254,24 +254,29 @@ export default function AdminPage() {
   }
 
   async function fetchJobListings() {
-    const { data } = await supabase
-      .from('job_listings')
-      .select('id, title, company, location, source, posted_date, is_active, status, closed_at')
-      .eq('is_active', true)
-      .order('posted_date', { ascending: false })
+    const res = await fetch('/api/admin-job-listings')
+    const { data } = await res.json()
     if (data) setJobListings(data)
   }
 
   async function deleteJobListing(id: string) {
     setJobDeleting(id)
-    await supabase.from('job_listings').delete().eq('id', id)
+    await fetch('/api/admin-job-listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    })
     await fetchJobListings()
     setJobDeleting(null)
   }
 
   async function closeJobListing(id: string, status: 'closed' | 'filled') {
     setJobDeleting(id)
-    await supabase.from('job_listings').update({ is_active: false, status, closed_at: new Date().toISOString() }).eq('id', id)
+    await fetch('/api/admin-job-listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'close', id, status }),
+    })
     await fetchJobListings()
     setJobDeleting(null)
   }
@@ -503,18 +508,23 @@ export default function AdminPage() {
       return
     }
     setJobSubmitting(true)
-    const { error } = await supabase.from('job_listings').insert({
-      title: jobForm.title,
-      company: jobForm.company.trim(),
-      location: jobForm.location,
-      salary: jobForm.salary.trim() || null,
-      description: jobForm.description.trim() || null,
-      url: jobForm.url.trim(),
-      source: jobForm.source,
-      role_category: JOB_TITLE_TO_CATEGORY[jobForm.title],
-      is_active: jobForm.is_active,
+    const res = await fetch('/api/admin-job-listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'create',
+        title: jobForm.title,
+        company: jobForm.company.trim(),
+        location: jobForm.location,
+        salary: jobForm.salary.trim() || null,
+        description: jobForm.description.trim() || null,
+        url: jobForm.url.trim(),
+        source: jobForm.source,
+        role_category: JOB_TITLE_TO_CATEGORY[jobForm.title],
+        is_active: jobForm.is_active,
+      }),
     })
-    if (error) {
+    if (!res.ok) {
       setJobError('Failed to post job. Please try again.')
     } else {
       setJobSuccess(true)
