@@ -1285,6 +1285,7 @@ useEffect(() => {
       .view-filter-banner{display:flex;align-items:center;justify-content:space-between;background:#FEF0EB;border:1px solid #FACDB8;border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:12px;font-weight:600;color:#F4622A;font-family:'Inter',sans-serif}
       .view-filter-banner button{background:none;border:none;color:#F4622A;font-weight:600;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif}
       .no-liked-item{font-size:13px;color:#9E9587;font-style:italic;margin-bottom:14px}
+      .job-fav-section{margin-top:24px;background:#FAFAF8;border:2px solid #F0EDE8;border-radius:14px;padding:20px}
       .job-fav-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #F0EDE8}
       .job-fav-row:last-of-type{border-bottom:none}
       .job-fav-info{min-width:0}
@@ -1826,6 +1827,36 @@ useEffect(() => {
 
                 <div className="job-disclaimer">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes. 📌</div>
               </div>
+
+              <div className="job-fav-section">
+                <div className="resources-head" style={{marginTop:0}}>⭐ Favourited Jobs</div>
+                <div className="resources-sub">Jobs you've saved, across every category — tick them off as you apply.</div>
+                {jobFavourites.length===0?(
+                  <div className="no-liked-item">No favourite jobs yet — tap the star on any listing to save it here.</div>
+                ):jobFavourites.map((fav:any)=>{
+                  const job = jobListings.find((j:any)=>j.id===fav.job_id);
+                  return (
+                    <div key={fav.id} className={`job-fav-row${fav.applied?" applied":""}`}>
+                      {job?(
+                        <>
+                          <div className="job-fav-info">
+                            <div className="job-fav-title"><span className="job-fav-star">⭐</span> {job.title}</div>
+                            <div className="job-fav-meta">{job.company} · {job.location}{job.work_type?` · ${WORK_TYPE_ICON[job.work_type]||''} ${job.work_type}`:''}</div>
+                            {fav.applied&&fav.applied_at&&<div className="job-fav-applied-date">Applied {new Date(fav.applied_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>}
+                            <a className="job-fav-apply-link" href={job.url} target="_blank" rel="noreferrer">Apply →</a>
+                          </div>
+                          <label className="job-fav-applied">
+                            <input type="checkbox" checked={!!fav.applied} onChange={()=>toggleJobApplied(fav)}/>
+                            Applied ✓
+                          </label>
+                        </>
+                      ):(
+                        <div className="job-fav-gone">This listing is no longer available</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
               </div>);
             })()}
 
@@ -2041,34 +2072,8 @@ useEffect(() => {
           <div className="settings-quick-row">
             <button className="btn-icon" onClick={()=>{setViewFilter("mine");setActiveTab("feed");setSettingsOpen(false);}}>📝 My Posts</button>
             <button className="btn-icon" onClick={()=>{setViewFilter("liked");setActiveTab("feed");setSettingsOpen(false);}}>❤️ My Liked Posts</button>
+            <button className="btn-icon" onClick={()=>{setActiveTab("jobs");setSettingsOpen(false);}}>⭐ Favourited Jobs</button>
           </div>
-
-          <div className="section-label">⭐ Favourited Jobs</div>
-          {jobFavourites.length===0?(
-            <div className="no-liked-item">No favourite jobs yet</div>
-          ):jobFavourites.map((fav:any)=>{
-            const job = jobListings.find((j:any)=>j.id===fav.job_id);
-            return (
-              <div key={fav.id} className={`job-fav-row${fav.applied?" applied":""}`}>
-                {job?(
-                  <>
-                    <div className="job-fav-info">
-                      <div className="job-fav-title"><span className="job-fav-star">⭐</span> {job.title}</div>
-                      <div className="job-fav-meta">{job.company} · {job.location}{job.work_type?` · ${WORK_TYPE_ICON[job.work_type]||''} ${job.work_type}`:''}</div>
-                      {fav.applied&&fav.applied_at&&<div className="job-fav-applied-date">Applied {new Date(fav.applied_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>}
-                      <a className="job-fav-apply-link" href={job.url} target="_blank" rel="noreferrer">Apply →</a>
-                    </div>
-                    <label className="job-fav-applied">
-                      <input type="checkbox" checked={!!fav.applied} onChange={()=>toggleJobApplied(fav)}/>
-                      Applied ✓
-                    </label>
-                  </>
-                ):(
-                  <div className="job-fav-gone">This listing is no longer available</div>
-                )}
-              </div>
-            );
-          })}
 
           <div className="modal-foot"><button className="btn-cancel" onClick={()=>setSettingsOpen(false)}>Close</button></div>
         </div>
