@@ -322,7 +322,6 @@ export default function Lounge() {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [jobDayModal, setJobDayModal] = useState<number|null>(null);
   const [jobFavourites, setJobFavourites] = useState<any[]>([]);
-  const [appliedPending, setAppliedPending] = useState(new Set<any>());
   const [composeEvent, setComposeEvent] = useState(false);
   const [submittedEvent, setSubmittedEvent] = useState(false);
   const [rsvpd, setRsvpd]             = useState(new Set<any>());
@@ -415,15 +414,12 @@ const [approvedSuggestions, setApprovedSuggestions] = useState<any[]>([])
       if (data) setJobFavourites((prev:any)=>[data, ...prev]);
     }
   };
-  const markJobApplied = async (favId:any) => {
-    setAppliedPending((prev:any)=>new Set(prev).add(favId));
-    await supabase.from('job_favourites').update({ applied: true }).eq('id', favId);
-    showToast("Marked as applied ✓");
-    setTimeout(async ()=>{
-      setJobFavourites((prev:any)=>prev.filter((f:any)=>f.id!==favId));
-      setAppliedPending((prev:any)=>{ const n=new Set(prev); n.delete(favId); return n; });
-      await supabase.from('job_favourites').delete().eq('id', favId);
-    }, 2000);
+  const toggleJobApplied = async (fav:any) => {
+    const applied = !fav.applied;
+    const applied_at = applied ? new Date().toISOString() : null;
+    setJobFavourites((prev:any)=>prev.map((f:any)=>f.id===fav.id?{...f,applied,applied_at}:f));
+    await supabase.from('job_favourites').update({ applied, applied_at }).eq('id', fav.id);
+    if (applied) showToast("Marked as applied ✓");
   };
 
   const showToast = (msg:string)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
@@ -1293,9 +1289,15 @@ useEffect(() => {
       .job-fav-row:last-of-type{border-bottom:none}
       .job-fav-info{min-width:0}
       .job-fav-title{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:#1A1814}
+      .job-fav-star{font-size:11px}
       .job-fav-meta{font-size:11px;color:#9E9587;margin-top:2px}
+      .job-fav-applied-date{font-size:10px;color:#0EAD8B;font-weight:600;margin-top:3px}
+      .job-fav-apply-link{display:inline-block;font-size:11px;font-weight:700;color:#7B5EA7;text-decoration:none;margin-top:4px}
+      .job-fav-apply-link:hover{text-decoration:underline}
       .job-fav-applied{display:flex;align-items:center;gap:6px;font-size:12px;color:#3A3530;cursor:pointer;white-space:nowrap;flex-shrink:0}
       .job-fav-gone{font-size:12px;color:#9E9587;font-style:italic}
+      .job-fav-row.applied{opacity:0.5}
+      .job-fav-row.applied .job-fav-title,.job-fav-row.applied .job-fav-meta{text-decoration:line-through}
       .modal-who{display:flex;align-items:center;gap:10px;margin-bottom:14px}
       .compose-name{font-family:'Fraunces',serif;font-weight:600;font-size:14px}
       .compose-sub{font-size:11px;color:#9E9587}
@@ -2041,22 +2043,23 @@ useEffect(() => {
             <button className="btn-icon" onClick={()=>{setViewFilter("liked");setActiveTab("feed");setSettingsOpen(false);}}>❤️ My Liked Posts</button>
           </div>
 
-          <div className="section-label">⭐ Favourite Jobs</div>
+          <div className="section-label">⭐ Favourited Jobs</div>
           {jobFavourites.length===0?(
             <div className="no-liked-item">No favourite jobs yet</div>
           ):jobFavourites.map((fav:any)=>{
             const job = jobListings.find((j:any)=>j.id===fav.job_id);
-            const pending = appliedPending.has(fav.id);
             return (
-              <div key={fav.id} className="job-fav-row">
+              <div key={fav.id} className={`job-fav-row${fav.applied?" applied":""}`}>
                 {job?(
                   <>
                     <div className="job-fav-info">
-                      <div className="job-fav-title">{job.title}</div>
-                      <div className="job-fav-meta">{job.company} · {job.location}</div>
+                      <div className="job-fav-title"><span className="job-fav-star">⭐</span> {job.title}</div>
+                      <div className="job-fav-meta">{job.company} · {job.location}{job.work_type?` · ${WORK_TYPE_ICON[job.work_type]||''} ${job.work_type}`:''}</div>
+                      {fav.applied&&fav.applied_at&&<div className="job-fav-applied-date">Applied {new Date(fav.applied_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>}
+                      <a className="job-fav-apply-link" href={job.url} target="_blank" rel="noreferrer">Apply →</a>
                     </div>
                     <label className="job-fav-applied">
-                      <input type="checkbox" checked={pending} disabled={pending} onChange={()=>markJobApplied(fav.id)}/>
+                      <input type="checkbox" checked={!!fav.applied} onChange={()=>toggleJobApplied(fav)}/>
                       Applied ✓
                     </label>
                   </>
