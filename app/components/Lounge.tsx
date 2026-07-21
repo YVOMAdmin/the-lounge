@@ -1236,12 +1236,13 @@ useEffect(() => {
       .postit-modal-desc{font-size:13px;color:#3A3530;line-height:1.6;margin-bottom:16px;background:rgba(255,255,255,0.4);border-radius:8px;padding:12px 14px}
       .postit-modal-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
       .job-source-badge{background:#1A1208;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.4px;text-transform:uppercase}
-      .postit-fav-btn{display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.5);border:1.5px solid #1A1208;color:#1A1208;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;padding:8px 14px;border-radius:100px;cursor:pointer;margin-bottom:14px;transition:all 0.15s}
+      .postit-fav-btn{display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.5);border:1.5px solid #1A1208;color:#1A1208;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;padding:8px 14px;border-radius:100px;cursor:pointer;margin-bottom:6px;transition:all 0.15s}
       .postit-fav-btn.on{background:#1A1208;color:#fff}
+      .postit-fav-hint{font-size:10px;color:#5A5248;text-align:center;margin-bottom:16px;line-height:1.4}
       .job-vetted-note{font-size:11px;color:#5A5248;margin-bottom:16px;line-height:1.5}
-      .postit-view-btn{display:block;background:#1A1208;color:#fff;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
+      .postit-view-btn{display:block;background:#1A1208;color:#fff;text-decoration:none;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box;margin-bottom:10px}
       .postit-view-btn:hover{background:#3A3530}
-      .postit-closed-notice{display:block;background:rgba(0,0,0,0.06);color:#5A5248;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box}
+      .postit-closed-notice{display:block;background:rgba(0,0,0,0.06);color:#5A5248;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:10px 20px;border-radius:100px;text-align:center;width:100%;box-sizing:border-box;margin-bottom:10px}
       .job-day-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:50vh;overflow-y:auto}
       .job-day-list-item{border:1px solid #E8E3DC;border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s}
       .job-day-list-item:hover{border-color:#D4CEC5;background:#FAFAF8}
@@ -2139,11 +2140,16 @@ useEffect(() => {
                   <span className="job-source-badge" style={{background:"#8a2020"}}>{selectedJob.status==="filled"?"Filled":"Closed"}</span>
                 </div>
               )}
-              {!isClosed&&<button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>}
-              <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
               {isClosed
                 ? <div className="postit-closed-notice">This role is no longer available.</div>
                 : <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>}
+              {!isClosed&&(
+                <>
+                  <button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>
+                  <div className="postit-fav-hint">Save as a reminder to apply later</div>
+                </>
+              )}
+              <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
             </div>
           </div>
         </div>
