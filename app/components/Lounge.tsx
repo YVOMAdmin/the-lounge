@@ -1193,7 +1193,7 @@ useEffect(() => {
       .job-cal-cell{cursor:default;aspect-ratio:auto;height:140px;align-items:flex-start;padding-top:6px;border-radius:0;border-right:1px solid #E8E3DC;border-bottom:1px solid #E8E3DC}
       .job-cal-cell:hover{background:transparent}
       .postit-stack{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;width:100%}
-      .postit{position:relative;width:calc(100% - 6px);border-radius:2px 8px 6px 9px;box-shadow:0 3px 6px rgba(0,0,0,0.15),0 1px 2px rgba(0,0,0,0.1);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:11px 8px 7px;transition:transform 0.15s;box-sizing:border-box;overflow:hidden}
+      .postit{position:relative;width:calc(100% - 6px);border-radius:2px 8px 6px 9px;box-shadow:0 3px 6px rgba(0,0,0,0.15),0 1px 2px rgba(0,0,0,0.1);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:11px 8px 7px;transition:transform 0.15s;box-sizing:border-box}
       .postit::after{content:'';position:absolute;bottom:0;right:0;width:11px;height:11px;background:linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.16) 50%);border-radius:0 0 2px 0;pointer-events:none}
       .postit:hover{transform:scale(1.04) rotate(0deg) !important;z-index:5}
       .postit-pin{font-size:15px;position:absolute;top:-7px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))}
@@ -1224,7 +1224,8 @@ useEffect(() => {
         .postit-stamp{font-size:6px;padding:1px 4px}
         .postit-more{font-size:8px;align-self:center}
       }
-      .postit-modal{border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;overflow-y:auto}
+      .postit-modal{border-radius:4px;width:100%;max-width:420px;padding:34px 28px 28px;position:relative;box-shadow:6px 6px 0 rgba(0,0,0,0.12),0 24px 80px rgba(0,0,0,0.2);animation:su 0.2s ease;transform:rotate(-1deg);max-height:90vh;display:flex;flex-direction:column}
+      .postit-modal-body{overflow-y:auto;min-height:0}
       .postit-modal-pin{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))}
       .postit-modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:15px;color:#1A1208;cursor:pointer;opacity:0.5;padding:4px}
       .postit-modal-close:hover{opacity:1}
@@ -2127,21 +2128,23 @@ useEffect(() => {
           <div className="postit-modal" style={{background:jobColor}}>
             <button className="postit-modal-close" onClick={()=>setSelectedJob(null)} aria-label="Close">✕</button>
             <div className="postit-modal-pin">⭐</div>
-            <div className="postit-modal-title">{selectedJob.title}</div>
-            <div className="postit-modal-company">{selectedJob.company}</div>
-            <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.work_type?` · ${WORK_TYPE_ICON[selectedJob.work_type]||''} ${selectedJob.work_type}`:''}</div>
-            {selectedJob.salary&&<div className="postit-modal-meta">💷 {selectedJob.salary}</div>}
-            {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
-            {isClosed&&(
-              <div className="postit-modal-badges">
-                <span className="job-source-badge" style={{background:"#8a2020"}}>{selectedJob.status==="filled"?"Filled":"Closed"}</span>
-              </div>
-            )}
-            {!isClosed&&<button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>}
-            <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
-            {isClosed
-              ? <div className="postit-closed-notice">This role is no longer available.</div>
-              : <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>}
+            <div className="postit-modal-body">
+              <div className="postit-modal-title">{selectedJob.title}</div>
+              <div className="postit-modal-company">{selectedJob.company}</div>
+              <div className="postit-modal-meta">📍 {selectedJob.location}{selectedJob.work_type?` · ${WORK_TYPE_ICON[selectedJob.work_type]||''} ${selectedJob.work_type}`:''}</div>
+              {selectedJob.salary&&<div className="postit-modal-meta">💷 {selectedJob.salary}</div>}
+              {selectedJob.description&&<div className="postit-modal-desc">{selectedJob.description}</div>}
+              {isClosed&&(
+                <div className="postit-modal-badges">
+                  <span className="job-source-badge" style={{background:"#8a2020"}}>{selectedJob.status==="filled"?"Filled":"Closed"}</span>
+                </div>
+              )}
+              {!isClosed&&<button className={`postit-fav-btn ${faved?"on":""}`} onClick={()=>toggleFavourite(selectedJob.id)}>{faved?"⭐ Favourited":"☆ Favourite"}</button>}
+              <div className="job-vetted-note">All jobs are reviewed before posting. The Lounge Community accepts no liability for the accuracy of listings or recruitment outcomes.</div>
+              {isClosed
+                ? <div className="postit-closed-notice">This role is no longer available.</div>
+                : <a className="postit-view-btn" href={selectedJob.url} target="_blank" rel="noreferrer">View Job →</a>}
+            </div>
           </div>
         </div>
         );
