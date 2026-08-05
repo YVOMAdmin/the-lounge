@@ -897,6 +897,7 @@ useEffect(() => {
   const jobCalCells:any[]=[];
   for(let i=0;i<jobFirstDay;i++)jobCalCells.push(null);
   for(let d=1;d<=jobTotalDays;d++)jobCalCells.push(d);
+  while(jobCalCells.length%7!==0)jobCalCells.push(null);
 
   const EventCard=({event,compact}:{event:any,compact:boolean})=>{
     const t=typeOf(event.type);
